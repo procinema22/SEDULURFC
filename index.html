@@ -772,6 +772,10 @@ if (!firebaseEnabled) {
 } else {
   // jika Firebase aktif, UI akan di-handle oleh onAuthStateChanged di atas
 }
+// 🔹 Cetak atau simpan otomatis ke PDF
+printBtn.addEventListener('click', () => {
+  window.print(); // Cetak browser
+});
 
 /* ========================= Akhir file ========================= */
 </script>
