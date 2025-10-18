@@ -1,783 +1,310 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SEDULUR FOTOCOPY — Kolase Foto (Firebase + EXIF)</title>
-
-<!-- jsPDF untuk PDF export -->
+<title>SEDULUR FOTOCOPY — Kolase Foto A4</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<!-- blueimp load-image untuk auto-rotate EXIF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-load-image/5.16.0/load-image.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 
 <style>
-/* ---------- Gaya & tema ---------- */
-:root{
-  --bg:#f4f7fb; --card:#fff; --text:#0f1720; --muted:#6b7280; --accent:#0b76f0;
-  --radius:12px;
+:root {
+  --bg:#f4f7fb; --card:#fff; --text:#0f1720; --muted:#6b7280; --accent:#4F46E5;
 }
-.dark { --bg:#0b1220; --card:#0f1720; --text:#e6eef8; --muted:#9aa7bf; --accent:#0ab4ff; }
-
-html,body{height:100%;margin:0;font-family:"Poppins",Inter,system-ui,Roboto,sans-serif;background:var(--bg); color:var(--text);}
-.wrap{max-width:1200px;margin:18px auto;padding:18px;}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
-h1{font-size:20px;margin:0}
-.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-
-.card{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 30px rgba(2,6,23,0.06);padding:12px;}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-label.small{font-size:12px;color:var(--muted)}
-input[type="text"], input[type="number"], select { padding:8px 10px;border-radius:8px;border:1px solid rgba(2,6,23,0.06); min-width:110px; }
-button { background:var(--accent); color:white; border:none; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600; }
-button.ghost{ background:transparent; border:1px solid rgba(2,6,23,0.06); color:var(--text); padding:8px 10px; }
-button.warn{ background:#ff6b6b; }
-
-main{display:grid;grid-template-columns:420px 1fr;gap:16px;}
-.left{display:flex;flex-direction:column;gap:12px}
-.right{display:flex;flex-direction:column;gap:12px;align-items:center}
-
-#thumbs{display:flex;gap:8px;flex-wrap:wrap;max-height:160px;overflow:auto;padding-top:6px}
-.thumb{width:80px;height:80px;border-radius:8px;background:#fafafa;border:1px solid rgba(0,0,0,0.06);overflow:hidden;display:flex;align-items:center;justify-content:center}
-.thumb img{width:100%;height:100%;object-fit:cover}
-
-.canvasWrap{display:flex;flex-direction:column;gap:8px;align-items:center}
-#canvas{ width:100%; max-width:595px; height:auto; border-radius:8px; box-shadow:0 10px 30px rgba(2,6,23,0.08); background:white; display:block; }
-
-.statusBar{width:100%;display:flex;gap:8px;align-items:center}
-.progress{flex:1;height:10px;background:rgba(0,0,0,0.06);border-radius:8px;overflow:hidden}
-.progress > .bar{height:100%;background:var(--accent);width:0%;transition:width .25s ease}
-
-.login-container { max-width:420px; margin:auto; background:var(--card); padding:18px; border-radius:12px; box-shadow:0 8px 30px rgba(2,6,23,0.06); }
-.hidden { display:none; }
-
-footer{margin-top:12px;text-align:center;color:var(--muted);font-size:13px}
-
-/* responsive */
-@media (max-width:980px){
-  main{grid-template-columns:1fr}
-  .left, .right{width:100%}
-  #canvas{max-width:100%}
+.dark {
+  --bg:#0b1220; --card:#0f1720; --text:#e6eef8; --muted:#9aa7bf; --accent:#6366F1;
 }
+html, body {margin:0; font-family:"Poppins", sans-serif; background:var(--bg); color:var(--text);}
+.wrap {max-width:1100px; margin:20px auto; padding:20px;}
+header {display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+h1 {font-size:20px; margin:0;}
+.card {background:var(--card); border-radius:12px; padding:16px; box-shadow:0 4px 16px rgba(0,0,0,0.05);}
+.controls {display:flex; flex-direction:column; gap:10px;}
+label {font-size:13px; color:var(--muted);}
+input, select {padding:6px 8px; border-radius:8px; border:1px solid #ddd; min-width:90px;}
+button {border:none; border-radius:10px; padding:8px 14px; cursor:pointer; font-weight:600; transition:0.25s;}
+.download-btn {background: linear-gradient(135deg, #4F46E5, #9333EA); box-shadow:0 4px 12px rgba(147,51,234,0.4); color:#fff;}
+.download-btn:hover {transform:translateY(-2px) scale(1.03);}
+.warn {background:#ef4444; color:#fff;}
+.ok {background:var(--accent); color:#fff;}
+.ghost {background:transparent; border:1px solid #888; color:var(--text);}
+.ghost:hover {background:rgba(99,102,241,0.1);}
+main {display:grid; grid-template-columns:360px 1fr; gap:20px;}
+#canvas {width:100%; max-width:595px; border-radius:10px; background:white; box-shadow:0 4px 20px rgba(0,0,0,0.08);}
+.price {font-weight:600; color:var(--accent); font-size:16px; margin-top:6px;}
+#batchList {max-height:200px; overflow-y:auto;}
+@media print {.no-print {display:none;}}
 </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <header>
-      <h1>🖨️ SEDULUR FOTOCOPY — Kolase Foto</h1>
+<div class="wrap">
+  <header class="no-print">
+    <h1>🖨️ SEDULUR FOTOCOPY — Kolase Foto A4</h1>
+    <button id="toggleDark" class="ghost">🌙 Mode Gelap</button>
+  </header>
+
+  <main>
+    <!-- Panel kiri -->
+    <section class="card no-print">
       <div class="controls">
-        <!-- Tombol toggle tema: tapi kita juga ikuti preferensi sistem -->
-        <button id="toggleDark" class="ghost">🌙 Mode</button>
+        <label>Unggah Foto:</label>
+        <input type="file" id="upload" accept="image/*" multiple />
+
+        <label>Pilih Ukuran (cm):</label>
+        <select id="sizeSelect">
+          <option value="2x3">2x3</option>
+          <option value="3x4">3x4</option>
+          <option value="4x6">4x6</option>
+          <option value="5x5">5x5</option>
+          <option value="6x9">6x9</option>
+          <option value="10x15">10x15 (4R)</option>
+          <option value="custom">Custom...</option>
+        </select>
+
+        <div id="customSize" style="display:none;gap:6px;align-items:center;">
+          <input type="number" id="customW" placeholder="Lebar (cm)" style="width:100px;">
+          <input type="number" id="customH" placeholder="Tinggi (cm)" style="width:100px;">
+          <button id="addCustom" class="ok">➕ Add Custom</button>
+        </div>
+
+        <label>Atur Margin (px):</label>
+        <input type="number" id="margin" value="20" />
+
+        <label>Atur Jarak/Gep antar foto (px):</label>
+        <input type="number" id="gap" value="10" />
+
+        <label>Nama User:</label>
+        <input type="text" id="userName" placeholder="Masukkan nama pengguna">
+
+        <div class="price" id="priceDisplay">Harga: Rp 0</div>
+
+        <label>Daftar Batch:</label>
+        <div id="batchList"></div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <button class="ok" id="generate">📄 Buat Kolase</button>
+          <button class="download-btn" id="downloadJpg">🖼️ Download JPG</button>
+          <button class="download-btn" id="downloadPdf">💾 Download PDF</button>
+          <button class="download-btn" id="printNow">🖨️ Print Langsung</button>
+          <button class="warn" id="reset">🔁 Reset</button>
+        </div>
       </div>
-    </header>
+    </section>
 
-    <!-- ===== Login / Register (Firebase Auth) ===== -->
-    <div id="authArea" class="login-container card">
-      <h3 style="margin-top:0">Admin — Login / Daftar</h3>
-      <div class="row" style="gap:6px;flex-direction:column;align-items:stretch">
-        <input id="authEmail" type="email" placeholder="Email admin (buat akun baru / login)" />
-        <input id="authPass" type="password" placeholder="Password" />
-        <div style="display:flex;gap:8px;">
-          <button id="btnRegister">Daftar</button>
-          <button id="btnLogin" class="ghost">Login</button>
-          <button id="btnLogout" class="ghost hidden">Logout</button>
-        </div>
-        <div id="authMsg" class="small" style="margin-top:6px;color:var(--muted)"></div>
-      </div>
-    </div>
+    <!-- Panel kanan -->
+    <section class="card">
+      <canvas id="canvas" width="2480" height="3508"></canvas>
+    </section>
+  </main>
+</div>
 
-    <!-- ===== Main App (tersimpan & hidden kalau belum login) ===== -->
-    <main id="appArea" class="hidden">
-      <!-- LEFT: Kontrol -->
-      <section class="left">
-        <div class="card">
-          <!-- Nama pelanggan -->
-          <div class="row" style="justify-content:space-between;">
-            <div>
-              <label class="small">Nama pelanggan</label><br>
-              <input id="customerName" type="text" placeholder="Masukkan nama (opsional)" />
-            </div>
-            <div>
-              <label class="small">Font size</label><br>
-              <select id="fontSize"><option value="48">48</option><option value="60" selected>60</option><option value="72">72</option></select>
-            </div>
-          </div>
-
-          <hr style="opacity:.06;margin:10px 0;">
-
-          <!-- Ukuran & jumlah salinan -->
-          <div class="row">
-            <div>
-              <label class="small">Pilih ukuran global (cm)</label><br>
-              <select id="globalSize">
-                <option value="2x3">2 x 3</option>
-                <option value="3x4">3 x 4</option>
-                <option value="4x6" selected>4 x 6</option>
-                <option value="5x5">5 x 5</option>
-                <option value="5x7">5 x 7</option>
-                <option value="9x13">9 x 13</option>
-                <option value="10x15">10 x 15</option>
-                <option value="13x18">13 x 18</option>
-                <option value="20x25">20 x 25</option>
-              </select>
-            </div>
-            <div style="min-width:150px">
-              <label class="small">Jumlah salinan per foto</label><br>
-              <input id="copyCount" type="number" min="1" value="1" style="width:120px">
-            </div>
-          </div>
-
-          <hr style="opacity:.06;margin:10px 0;">
-
-          <!-- Custom size -->
-          <div class="row">
-            <div>
-              <label class="small">Tambah ukuran custom (cm)</label><br>
-              <input id="customW" type="number" placeholder="W" style="width:70px">
-              <input id="customH" type="number" placeholder="H" style="width:70px">
-              <button id="addCustomSize" class="ghost">+ Add</button>
-            </div>
-          </div>
-
-          <hr style="opacity:.06;margin:10px 0;">
-
-          <!-- Upload -->
-          <div class="row" style="align-items:center;">
-            <div>
-              <label class="small">Upload foto</label><br>
-              <input id="fileInput" type="file" accept="image/*" multiple />
-            </div>
-            <div style="margin-left:auto">
-              <button id="addPhoto" class="ghost">➕ Tambah Foto (batch)</button>
-            </div>
-          </div>
-
-          <div style="margin-top:10px;">
-            <div class="small">Thumbnail</div>
-            <div id="thumbs"></div>
-          </div>
-
-          <hr style="opacity:.06;margin:10px 0;">
-
-          <div class="row">
-            <div>
-              <label class="small">Margin (mm)</label><br>
-              <input id="marginMm" type="number" value="5" min="0" style="width:90px">
-            </div>
-            <div>
-              <label class="small">Gap (mm)</label><br>
-              <input id="gapMm" type="number" value="5" min="0" style="width:90px">
-            </div>
-            <div>
-              <label class="small">Scale preview</label><br>
-              <select id="previewScale">
-                <option value="auto" selected>Fit to screen</option>
-                <option value="100">100%</option>
-                <option value="75">75%</option>
-                <option value="50">50%</option>
-              </select>
-            </div>
-          </div>
-
-          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-            <button id="generate">📄 Buat Kolase</button>
-            <button id="duplicate" class="ghost">📋 Duplicate Lembar</button>
-            <button id="copyCanvas" class="ghost">🔗 Copy Lembar (tab)</button>
-            <button id="downloadJpg" class="ghost">🖼️ JPG</button>
-            <button id="downloadPdf" class="ghost">💾 PDF</button>
-            <button id="reset" class="warn">🔁 Reset</button>
-          </div>
-
-          <div style="margin-top:10px;font-size:13px;color:var(--muted);">
-            <span id="pagesCount">Lembar: 0</span> · <span id="priceInfo">Harga/lembar: Rp0</span> · <span id="totalPrice">Total: Rp0</span>
-          </div>
-        </div>
-
-        <div class="card small" style="margin-top:8px;">
-          Keterangan: foto tersusun <strong>sejajar (kiri → kanan)</strong> lalu turun baris. Nama & harga dicetak di bawah lembar saat download.
-        </div>
-      </section>
-
-      <!-- RIGHT: Preview -->
-      <section class="right">
-        <div class="card canvasWrap" style="padding:16px;">
-          <canvas id="canvas" width="2480" height="3508"></canvas>
-          <div class="statusBar">
-            <div class="progress"><div class="bar" id="fillBar"></div></div>
-            <div style="min-width:140px;text-align:right;color:var(--muted);font-size:13px;">
-              <div id="usedPx">Terisi: 0 px</div>
-              <div id="statusMsg" style="color:var(--muted);font-size:12px;"></div>
-            </div>
-          </div>
-
-          <!-- Admin badge & stats button -->
-          <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
-            <div id="adminBadge" class="small" style="display:none;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.04)"></div>
-            <button id="openLogs" class="ghost" style="margin-left:auto">📋 Lihat Log (Firestore)</button>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer>Deploy: GitHub Pages • Firebase Auth & Firestore • EXIF auto-rotate • Dark mode follow system + toggle</footer>
-  </div>
-
-<script type="module">
-/* ========================= KOMENTAR SINGKAT (Bahasa Indonesia praktis) =========================
-  - File ini satu-satunya: index.html (semua CSS & JS di dalam)
-  - Hal yang harus kamu lakukan: isi firebaseConfig di bagian PASTE_FIREBASE_CONFIG, dan aktifkan:
-      - Authentication -> Email/Password
-      - Firestore -> create (test mode ok untuk awal)
-  - Setelah itu, upload file ini ke GitHub Pages (repo -> settings -> Pages) atau gunakan Live Server.
-  - Jika belum mengisi firebaseConfig, aplikasi tetap berjalan tapi admin/login/log tidak terkoneksi ke Firestore.
-===============================================================================================*/
-
-/* -------------------- IMPORT FIREBASE (module) --------------------
-   Kita gunakan modul Firebase (v10). Jika kamu belum masukkan config, fitur auth/firestore nonaktif.
-*/
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
-
-/* -------------------- SILAHKAN PASTE FIREBASE CONFIG KAMU DI SINI --------------------
-   Contoh (ganti dengan config project kamu dari Firebase Console):
-const firebaseConfig = {
-  apiKey: "AIzaSyCrozZW6DG4E9wgbE9Bd2cIqh5-RuzM5FU",
-  authDomain: "kolasefoto-2cf22.firebaseapp.com",
-  projectId: "kolasefoto-2cf22",
-  storageBucket: "kolasefoto-2cf22.firebasestorage.app",
-  messagingSenderId: "103721736563",
-  appId: "1:103721736563:web:7e638c023e47c89b980d06",
-  measurementId: "G-788N1PWY34"
-};
-*/
-
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-
-
-/* Jika firebaseConfig belum diisi (kosong), kita tidak inisialisasi Firebase agar kode tetap berjalan */
-let firebaseEnabled = false;
-let auth = null, db = null;
-try {
-  if (firebaseConfig && firebaseConfig.apiKey) {
-    const app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    firebaseEnabled = true;
-    console.log('Firebase diaktifkan.');
-  } else {
-    console.warn('Firebase config belum diisi — fitur auth & logs dinonaktifkan.');
-  }
-} catch(e) {
-  console.error('Inisialisasi Firebase gagal:', e);
-  firebaseEnabled = false;
-}
-
-/* -------------------- Util & Konstanta -------------------- */
-const mmToPx = mm => Math.round(mm * 11.811);
-const pxA4 = { w: 2480, h: 3508 };
-const halfA4Px = pxA4.h / 2;
-
-/* -------------------- Elemen DOM -------------------- */
-const authArea = document.getElementById('authArea');
-const appArea = document.getElementById('appArea');
-
-const btnRegister = document.getElementById('btnRegister');
-const btnLogin = document.getElementById('btnLogin');
-const btnLogout = document.getElementById('btnLogout');
-const authEmail = document.getElementById('authEmail');
-const authPass = document.getElementById('authPass');
-const authMsg = document.getElementById('authMsg');
-
-const toggleDark = document.getElementById('toggleDark');
-const adminBadge = document.getElementById('adminBadge');
-
-const fileInput = document.getElementById('fileInput');
-const addPhotoBtn = document.getElementById('addPhoto');
-const thumbs = document.getElementById('thumbs');
-const globalSize = document.getElementById('globalSize');
-const addCustomSizeBtn = document.getElementById('addCustomSize');
-const customW = document.getElementById('customW');
-const customH = document.getElementById('customH');
-const marginMmInput = document.getElementById('marginMm');
-const gapMmInput = document.getElementById('gapMm');
-const copyCountInput = document.getElementById('copyCount');
-const fontSizeSelect = document.getElementById('fontSize');
-const previewScaleSelect = document.getElementById('previewScale');
-const customerNameEl = document.getElementById('customerName');
-
-const generateBtn = document.getElementById('generate');
-const duplicateBtn = document.getElementById('duplicate');
-const copyCanvasBtn = document.getElementById('copyCanvas');
-const downloadJpgBtn = document.getElementById('downloadJpg');
-const downloadPdfBtn = document.getElementById('downloadPdf');
-const resetBtn = document.getElementById('reset');
-
-const pagesCountEl = document.getElementById('pagesCount');
-const priceInfoEl = document.getElementById('priceInfo');
-const totalPriceEl = document.getElementById('totalPrice');
-const usedPxEl = document.getElementById('usedPx');
-const statusMsg = document.getElementById('statusMsg');
-const fillBar = document.getElementById('fillBar');
-
+<script>
+const upload = document.getElementById('upload');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+const generateBtn = document.getElementById('generate');
+const marginInput = document.getElementById('margin');
+const gapInput = document.getElementById('gap');
+const priceDisplay = document.getElementById('priceDisplay');
+const sizeSelect = document.getElementById('sizeSelect');
+const userName = document.getElementById('userName');
+const toggleDark = document.getElementById('toggleDark');
+const addCustom = document.getElementById('addCustom');
+const batchList = document.getElementById('batchList');
 
-const openLogsBtn = document.getElementById('openLogs');
+let batches = [];
 
-/* -------------------- State -------------------- */
-let batches = []; // [{size:{wcm,hcm}, files:[File,...]}]
-let pages = [];
-let previewDataURL = null;
-let currentUser = null; // object from Firebase auth or simple flag
-
-/* ========================= THEME: ikuti sistem + toggle (simpan preferensi) ========================= */
-// kita support: default mengikuti prefers-color-scheme, tetapi user bisa toggle override
-function applyInitialTheme() {
-  const saved = localStorage.getItem('sfo_theme'); // 'dark' / 'light' / null
-  if (saved === 'dark') document.documentElement.classList.add('dark');
-  else if (saved === 'light') document.documentElement.classList.remove('dark');
-  else {
-    // tidak ada preferensi saved -> ikuti system
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (prefersDark) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
-  }
-  toggleDark.textContent = document.documentElement.classList.contains('dark') ? '☀️ Light' : '🌙 Dark';
-}
-applyInitialTheme();
-toggleDark.addEventListener('click', () => {
-  const dark = document.documentElement.classList.toggle('dark');
-  localStorage.setItem('sfo_theme', dark ? 'dark' : 'light');
-  toggleDark.textContent = dark ? '☀️ Light' : '🌙 Dark';
+sizeSelect.addEventListener('change', ()=>{
+  document.getElementById('customSize').style.display = sizeSelect.value === 'custom' ? 'flex' : 'none';
 });
 
-/* ========================= AUTH (Firebase) ========================= */
-/* - Jika firebaseEnabled true: gunakan Firebase Auth
-   - Jika tidak: buat fallback sederhana localStorage (untuk testing offline)
-   Implementasi ini memberi kemudahan untuk deploy ke GitHub Pages
-*/
-async function registerUser(email, password) {
-  if (firebaseEnabled) {
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      authMsg.textContent = 'Daftar berhasil. Silakan login.';
-    } catch (e) {
-      authMsg.textContent = e.message;
-    }
-  } else {
-    // fallback: simpan ke localStorage (HANYA UNTUK TEST)
-    const admins = JSON.parse(localStorage.getItem('sfo_local_admins')||'{}');
-    if (admins[email]) { authMsg.textContent = 'Email sudah terdaftar (local).'; return; }
-    admins[email] = { password, downloads:0, logs:[] };
-    localStorage.setItem('sfo_local_admins', JSON.stringify(admins));
-    authMsg.textContent = 'Daftar (local) berhasil. Silakan login.';
-  }
-}
-
-async function loginUser(email, password) {
-  if (firebaseEnabled) {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      authMsg.textContent = '';
-    } catch(e) { authMsg.textContent = e.message; }
-  } else {
-    // fallback
-    const admins = JSON.parse(localStorage.getItem('sfo_local_admins')||'{}');
-    if(!admins[email] || admins[email].password !== password) {
-      authMsg.textContent = 'Login (local) gagal. Cek email/password.';
-      return;
-    }
-    // set current user local
-    currentUser = { email, local: true };
-    onLoginSuccessLocal(email);
-  }
-}
-
-async function logoutUser() {
-  if (firebaseEnabled) {
-    await signOut(auth);
-  } else {
-    currentUser = null;
-    updateAuthUI();
-  }
-}
-
-/* Jika Firebase aktif, tangani perubahan auth state */
-if (firebaseEnabled) {
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      currentUser = { email: user.email, uid: user.uid, firebase: true };
-      updateAuthUI();
-    } else {
-      currentUser = null;
-      updateAuthUI();
-    }
-  });
-}
-
-/* Event register / login / logout buttons */
-btnRegister.addEventListener('click', ()=> registerUser(authEmail.value.trim(), authPass.value));
-btnLogin.addEventListener('click', ()=> loginUser(authEmail.value.trim(), authPass.value));
-btnLogout.addEventListener('click', ()=> logoutUser());
-
-/* Update UI after login/logout */
-function updateAuthUI(){
-  if (currentUser) {
-    authArea.classList.add('hidden');
-    appArea.classList.remove('hidden');
-    adminBadge.style.display = 'inline-block';
-    adminBadge.textContent = `Admin: ${currentUser.email || '(local)'}`;
-  } else {
-    authArea.classList.remove('hidden');
-    appArea.classList.add('hidden');
-    adminBadge.style.display = 'none';
-  }
-}
-
-/* ========================= Helper status ========================= */
-function showStatus(txt, timeout=2500) {
-  statusMsg.textContent = txt;
-  if (timeout>0) {
-    clearTimeout(showStatus._t);
-    showStatus._t = setTimeout(()=> statusMsg.textContent = '', timeout);
-  }
-}
-
-/* ========================= Thumbnail & Batch management ========================= */
-/* Setiap upload ditambahkan sebagai sebuah batch dengan ukuran yang dipilih saat itu.
-   Ini -> memungkinkan mix sizes di satu lembar.
-*/
-function addBatch(files, sizeValue){
-  if (!files || files.length===0) return;
-  let size;
-  if (typeof sizeValue === 'string') {
-    const [w,h] = sizeValue.split('x').map(n=>parseFloat(n));
-    size = { wcm: w, hcm: h };
-  } else size = sizeValue;
-  batches.push({ size, files: [...files] });
-  renderThumbs();
-  showStatus(`Tambah ${files.length} foto ukuran ${size.wcm}x${size.hcm} cm`);
-}
-
-function renderThumbs(){
-  thumbs.innerHTML = '';
-  for (const b of batches) {
-    for (const f of b.files) {
-      const url = URL.createObjectURL(f);
-      const div = document.createElement('div'); div.className = 'thumb';
-      const img = document.createElement('img'); img.src = url;
-      div.appendChild(img); thumbs.appendChild(div);
-      img.onload = () => URL.revokeObjectURL(url);
-    }
-  }
-}
-
-/* Upload & add photo buttons */
-fileInput.addEventListener('change', (e)=> { addBatch(e.target.files, globalSize.value); fileInput.value=''; });
-addPhotoBtn.addEventListener('click', ()=> {
-  const tmp = document.createElement('input'); tmp.type='file'; tmp.accept='image/*'; tmp.multiple=true;
-  tmp.onchange = e=> { addBatch(e.target.files, globalSize.value); tmp.remove(); };
-  tmp.click();
-});
-
-/* Add custom size option */
-addCustomSizeBtn.addEventListener('click', ()=>{
-  const w = parseFloat(customW.value), h = parseFloat(customH.value);
-  if(!w||!h){ showStatus('Masukkan ukuran custom (cm)'); return; }
-  const key = `${w}x${h}`;
-  if(!Array.from(globalSize.options).some(o=>o.value===key)){
-    const opt = document.createElement('option'); opt.value = key; opt.textContent = `${w} x ${h} (custom)`;
-    globalSize.appendChild(opt);
-  }
-  globalSize.value = key;
-  showStatus(`Ukuran custom ${key} cm ditambahkan.`);
-});
-
-/* ========================= Auto-rotate EXIF saat load gambar ========================= */
-/* Kita gunakan blueimp-load-image:
-   loadImage(file, callback, { canvas: true, orientation: true })
-   menghasilkan elemen canvas yang sudah ter-rotate berdasarkan EXIF.
-   Kita ubah canvas ke dataURL lalu buat Image dari dataURL.
-*/
-function loadImageAutoRotate(file){
-  return new Promise((resolve,reject)=>{
-    // opsi: canvas true => hasilkan canvas; orientation true => apply EXIF orientation
-    window.loadImage.parseMetaData(file, meta => {
-      const options = { canvas: true, orientation: meta && meta.exif && meta.exif.get('Orientation') || true };
-      window.loadImage(file, function (canvasOrImg, meta2) {
-        if (!canvasOrImg) return reject(new Error('Gagal load image'));
-        // jika return canvas, buat Image dari dataURL
-        if (canvasOrImg.toDataURL) {
-          const img = new Image();
-          img.onload = ()=> resolve(img);
-          img.src = canvasOrImg.toDataURL('image/jpeg');
-        } else {
-          // fallback: sudah Image
-          resolve(canvasOrImg);
-        }
-      }, options);
-    });
-  });
-}
-
-/* ========================= drawCover (cover crop) ========================= */
-function drawCover(ctx, img, x, y, w, h){
-  const iw=img.width, ih=img.height, ir=iw/ih, tr=w/h;
-  let sx, sy, sw, sh;
-  if(ir > tr){ sh=ih; sw=ih*tr; sx=(iw-sw)/2; sy=0; }
-  else{ sw=iw; sh=iw/tr; sx=0; sy=(ih-sh)/2; }
-  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
-  ctx.strokeStyle='rgba(0,0,0,0.12)'; ctx.lineWidth=2; ctx.strokeRect(x+2,y+2,w-4,h-4);
-}
-
-/* ========================= Render batches ke pages (offscreen) ========================= */
-/* Menggandakan setiap foto sebanyak copyCount sebelum penempatan. */
-async function renderBatchesToPages(){
-  const paperW = pxA4.w, paperH = pxA4.h;
-  const off = document.createElement('canvas'); off.width = paperW; off.height = paperH;
-  const octx = off.getContext('2d');
-  const margin = mmToPx(parseFloat(marginMmInput.value)||5);
-  const gap = mmToPx(parseFloat(gapMmInput.value)||5);
-  const copyCount = Math.max(1, parseInt(copyCountInput.value)||1);
-
-  let pagesOut = [], usedHeights = [];
-
-  octx.fillStyle='white'; octx.fillRect(0,0,off.width,off.height);
-  let x = margin, y = margin, rowMaxH = 0, highestYThisPage = 0;
-
-  for (const batch of batches){
-    const wmm = batch.size.wcm * 10, hmm = batch.size.hcm * 10;
-    const wpx = mmToPx(wmm), hpx = mmToPx(hmm);
-
-    for (const f of batch.files){
-      for (let c=0; c<copyCount; c++){
-        if (x + wpx + margin > paperW){
-          x = margin;
-          y += rowMaxH + gap;
-          rowMaxH = 0;
-        }
-        if (y + hpx + margin > paperH){
-          pagesOut.push(off.toDataURL('image/jpeg',0.95));
-          usedHeights.push(highestYThisPage || (y + rowMaxH));
-          // reset page
-          octx.fillStyle='white'; octx.fillRect(0,0,off.width,off.height);
-          x = margin; y = margin; rowMaxH = 0; highestYThisPage = 0;
-        }
-
-        // load image dengan auto-rotate
-        const img = await loadImageAutoRotate(f);
-        drawCover(octx, img, x, y, wpx, hpx);
-        x += wpx + gap;
-        if (hpx > rowMaxH) rowMaxH = hpx;
-        if (y + hpx > highestYThisPage) highestYThisPage = y + hpx;
-      }
-    }
-    x = margin;
-    y += rowMaxH + gap;
-    if (y > highestYThisPage) highestYThisPage = y;
-    rowMaxH = 0;
-  }
-
-  pagesOut.push(off.toDataURL('image/jpeg',0.95));
-  usedHeights.push(highestYThisPage || (y + rowMaxH));
-  return { pages: pagesOut, usedHeights };
-}
-
-/* ========================= Update UI: fill & price ========================= */
-function updateFillAndPrice(usedHeights){
-  if(!usedHeights || usedHeights.length===0){
-    fillBar.style.width='0%';
-    usedPxEl.textContent='Terisi: 0 px';
-    priceInfoEl.textContent='Harga/lembar: Rp0';
-    totalPriceEl.textContent='Total: Rp0';
+// Tambah batch
+function addBatch(files, size, customW=0, customH=0){
+  if(files.length === 0){
+    alert("❌ Upload foto dulu sebelum menambahkan batch!");
     return;
   }
-  const prices = usedHeights.map(h => h > halfA4Px ? 2000 : 1000);
-  const first = prices[0];
-  const total = prices.reduce((a,b)=>a+b,0);
-  const percent = Math.min(100, Math.round((usedHeights[0]/pxA4.h)*100));
-  fillBar.style.width = percent + '%';
-  usedPxEl.textContent = `Terisi: ${Math.round(usedHeights[0])} px (${percent}%)`;
-  priceInfoEl.textContent = `Harga/lembar: Rp${first.toLocaleString('id-ID')}`;
-  totalPriceEl.textContent = `Total: Rp${total.toLocaleString('id-ID')}`;
+  batches.push({ files, size, customW, customH, copy: 1 });
+  refreshBatchList();
+  alert(`✅ ${files.length} foto ditambahkan (${size}${size==='custom'?` ${customW}x${customH} cm`:""})`);
 }
 
-/* ========================= Preview draw ========================= */
-function drawPreviewFromDataURL(dataURL){
-  const img = new Image();
-  img.onload = ()=>{
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+// Tampilkan daftar batch
+function refreshBatchList(){
+  batchList.innerHTML = "";
+  batches.forEach((batch, index)=>{
+    const w = batch.size === 'custom' ? batch.customW : batch.size.split('x')[0];
+    const h = batch.size === 'custom' ? batch.customH : batch.size.split('x')[1];
+    const div = document.createElement('div');
+    div.style.display = "flex"; div.style.alignItems = "center"; div.style.gap = "6px";
 
-    // gambar nama + harga di bawah
-    const fontPx = parseInt(fontSizeSelect.value,10) || 60;
-    ctx.font = `bold ${fontPx}px Poppins`;
-    const computedTextColor = getComputedStyle(document.documentElement).getPropertyValue('--text') || '#111';
-    ctx.fillStyle = computedTextColor.trim() || '#111';
-    const customer = customerNameEl.value.trim();
-    const priceText = priceInfoEl.textContent.replace('Harga/lembar: ','') || 'Rp0';
-    const displayText = customer ? `${customer} - ${priceText}` : `${priceText}`;
-    const x = mmToPx(20), y = canvas.height - mmToPx(10);
-    ctx.fillText(displayText, x, y);
+    const info = document.createElement('span');
+    info.textContent = `${batch.files.length} foto — ${w}x${h} cm`;
 
-    previewDataURL = canvas.toDataURL('image/jpeg',0.95);
-  };
-  img.src = dataURL;
-}
+    const copyInput = document.createElement('input');
+    copyInput.type = "number"; copyInput.value = batch.copy || 1; copyInput.min = 1;
+    copyInput.style.width = "60px";
+    copyInput.addEventListener('change', ()=> batch.copy = parseInt(copyInput.value));
 
-/* ========================= Generate event ========================= */
-generateBtn.addEventListener('click', async ()=>{
-  if (batches.length === 0){ showStatus('Upload foto dulu.'); return; }
-  generateBtn.disabled = true; generateBtn.textContent = 'Rendering...';
-  try {
-    const { pages: rendered, usedHeights } = await renderBatchesToPages();
-    pages = rendered.slice();
-    pagesCountEl.textContent = `Lembar: ${pages.length}`;
-    updateFillAndPrice(usedHeights);
-    drawPreviewFromDataURL(pages[0]);
-    showStatus('Preview siap.');
-  } catch(e){
-    console.error(e);
-    showStatus('Gagal render. Cek file atau ulangi.');
-  } finally {
-    generateBtn.disabled = false; generateBtn.textContent = '📄 Buat Kolase';
-  }
-});
+    const delBtn = document.createElement('button');
+    delBtn.textContent = "❌"; delBtn.className="warn";
+    delBtn.onclick = ()=> { batches.splice(index,1); refreshBatchList(); };
 
-/* Duplicate, copy, download handlers */
-duplicateBtn.addEventListener('click', ()=>{
-  if(!previewDataURL){ showStatus('Buat kolase dulu.'); return; }
-  pages.push(previewDataURL);
-  pagesCountEl.textContent = `Lembar: ${pages.length}`;
-  showStatus('Lembar diduplikasi.');
-});
-
-copyCanvasBtn.addEventListener('click', ()=>{
-  if(!previewDataURL){ showStatus('Buat kolase dulu.'); return; }
-  const w = window.open(''); w.document.write(`<img src="${previewDataURL}" style="max-width:100%;">`);
-});
-
-/* Catat log ke Firestore jika aktif, atau local fallback */
-async function adminRecordDownloadLog({ type='pdf', pagesCount=1 } = {}){
-  const customer = customerNameEl.value.trim() || '(tanpa nama)';
-  // jika firebase active dan user authenticated -> simpan ke Firestore
-  if (firebaseEnabled && currentUser && currentUser.email) {
-    try {
-      await addDoc(collection(db, 'download_logs'), {
-        email: currentUser.email,
-        type,
-        pagesCount,
-        customer,
-        createdAt: serverTimestamp()
-      });
-      showStatus('Log tersimpan di Firestore.');
-    } catch(e){
-      console.error('Firestore save error', e);
-      showStatus('Gagal simpan log ke Firestore (cek console).');
-    }
-  } else {
-    // fallback: localStorage log
-    const key = 'sfo_local_logs';
-    const arr = JSON.parse(localStorage.getItem(key) || '[]');
-    arr.push({ email: currentUser ? currentUser.email : '(anon)', type, pagesCount, customer, time: new Date().toISOString() });
-    localStorage.setItem(key, JSON.stringify(arr));
-    showStatus('Log tersimpan lokal (offline).');
-  }
-}
-
-/* DOWNLOAD JPG: unduh preview pertama */
-downloadJpgBtn.addEventListener('click', ()=>{
-  if(!previewDataURL){ showStatus('Buat kolase dulu.'); return; }
-  const a = document.createElement('a'); a.href = previewDataURL; a.download = 'kolase_preview.jpg'; a.click();
-  adminRecordDownloadLog({ type:'jpg', pagesCount: pages.length });
-  resetAll(true);
-});
-
-/* DOWNLOAD PDF: semua pages -> PDF */
-downloadPdfBtn.addEventListener('click', ()=>{
-  if(pages.length === 0){ showStatus('Buat kolase dulu.'); return; }
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-  pages.forEach((p, idx)=>{
-    if(idx>0) pdf.addPage();
-    pdf.addImage(p,'JPEG',0,0,210,297);
+    div.appendChild(info);
+    div.appendChild(copyInput);
+    div.appendChild(delBtn);
+    batchList.appendChild(div);
   });
-  pdf.save('kolase_foto.pdf');
-  adminRecordDownloadLog({ type:'pdf', pagesCount: pages.length });
-  resetAll(true);
-});
-
-/* Reset */
-function resetAll(skipMsg=false){
-  batches = []; pages = []; previewDataURL = null;
-  thumbs.innerHTML=''; pagesCountEl.textContent='Lembar: 0'; priceInfoEl.textContent='Harga/lembar: Rp0';
-  totalPriceEl.textContent='Total: Rp0'; fillBar.style.width='0%'; usedPxEl.textContent='Terisi: 0 px';
-  ctx.fillStyle='white'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  if(!skipMsg) showStatus('Data direset.');
 }
-resetBtn.addEventListener('click', ()=> { if(confirm('Reset semua (hapus foto & lembar)?')) resetAll(false); });
 
-/* Preview scale */
-function applyPreviewScale(){
-  const sel = previewScaleSelect.value;
-  if (sel === 'auto') {
-    const containerWidth = Math.min(595, window.innerWidth - 80);
-    canvas.style.width = containerWidth + 'px'; canvas.style.height = 'auto';
-  } else {
-    canvas.style.width = sel + '%'; canvas.style.height = 'auto';
-  }
-}
-previewScaleSelect.addEventListener('change', applyPreviewScale);
-window.addEventListener('resize', applyPreviewScale);
-applyPreviewScale();
-
-/* Initialize canvas white */
-ctx.fillStyle='white'; ctx.fillRect(0,0,canvas.width,canvas.height);
-
-/* ========================= OPEN LOGS (Firestore) ========================= */
-openLogsBtn.addEventListener('click', async ()=>{
-  if (!firebaseEnabled) { showStatus('Firebase belum diaktifkan (config kosong).'); return; }
-  if (!currentUser || !currentUser.email) { showStatus('Login dulu untuk melihat log.'); return; }
-  // query logs for current user
-  try {
-    const q = query(collection(db, 'download_logs'), where('email', '==', currentUser.email));
-    const snap = await getDocs(q);
-    let html = '<div style="max-height:300px;overflow:auto">';
-    snap.forEach(doc => {
-      const d = doc.data();
-      html += `<div style="padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.04)">${d.customer} — ${d.type.toUpperCase()} — halaman:${d.pagesCount || '-'} — ${d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleString() : '-'}</div>`;
-    });
-    html += '</div>';
-    // buka popup sederhana
-    const w = window.open('', '_blank', 'width=600,height=400');
-    w.document.write(`<h3>Log untuk ${currentUser.email}</h3>`+html);
-  } catch(e){
-    console.error(e);
-    showStatus('Gagal ambil log dari Firestore (cek console).');
+// Upload file (preset)
+upload.addEventListener('change', e=>{
+  const files = Array.from(e.target.files);
+  const currentSize = sizeSelect.value;
+  if(currentSize !== 'custom'){
+    addBatch(files, currentSize);
   }
 });
 
-/* ========================= Simple local auth fallback: set currentUser when using local login ========================= */
-function onLoginSuccessLocal(email) {
-  currentUser = { email, local: true };
-  updateAuthUI();
-}
-
-/* ========================= Inisialisasi: bila Firebase nonaktif, tampilkan authArea juga untuk local flow ======= */
-if (!firebaseEnabled) {
-  // tetap tampilkan area auth sebagai "local" register/login; user bisa gunakan tanpa backend
-  showStatus('Firebase tidak aktif — menggunakan mode lokal (untuk testing).');
-  authArea.classList.remove('hidden');
-  appArea.classList.add('hidden');
-} else {
-  // jika Firebase aktif, UI akan di-handle oleh onAuthStateChanged di atas
-}
-// 🔹 Cetak atau simpan otomatis ke PDF
-printBtn.addEventListener('click', () => {
-  window.print(); // Cetak browser
+// Tombol Add Custom
+addCustom.addEventListener('click', ()=>{
+  const customW = parseFloat(document.getElementById('customW').value);
+  const customH = parseFloat(document.getElementById('customH').value);
+  if(isNaN(customW) || isNaN(customH) || customW <=0 || customH <=0){
+    alert("❌ Masukkan ukuran valid!");
+    return;
+  }
+  const files = Array.from(upload.files);
+  addBatch(files, 'custom', customW, customH);
 });
 
-/* ========================= Akhir file ========================= */
+// Generate Kolase
+generateBtn.addEventListener('click', async ()=> {
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  const margin = parseInt(marginInput.value);
+  const gap = parseInt(gapInput.value);
+  const pxPerCm = 118;
+  let x = margin, y = margin, maxHeight = 0;
+  let totalHarga = 0;
+  const areaA5 = 148*118 * 210*118;
+
+  for (const batch of batches) {
+    let wcm,hcm;
+    if(batch.size === 'custom'){
+      wcm = batch.customW; hcm = batch.customH;
+    } else {
+      [wcm,hcm] = batch.size.split('x').map(Number);
+    }
+    const photoW = wcm * pxPerCm;
+    const photoH = hcm * pxPerCm;
+
+    for (const file of batch.files) {
+      const img = await loadImageWithEXIF(file);
+      let drawW = photoW, drawH = photoH;
+      if(img.width > img.height && photoH > photoW) [drawW, drawH] = [photoH, photoW];
+      const ratio = Math.min(drawW / img.width, drawH / img.height);
+      const dw = img.width * ratio;
+      const dh = img.height * ratio;
+      const offsetX = (drawW - dw)/2;
+      const offsetY = (drawH - dh)/2;
+
+      for(let c=0;c<(batch.copy||1);c++){
+        ctx.drawImage(img, x + offsetX, y + offsetY, dw, dh);
+        x += drawW + gap;
+        maxHeight = Math.max(maxHeight, drawH);
+        const fotoArea = drawW*dh;
+        totalHarga += fotoArea > areaA5 ? 2000 : 1000;
+        if(x + drawW > canvas.width - margin){ x = margin; y += maxHeight + gap; maxHeight=0; }
+      }
+    }
+  }
+
+  priceDisplay.textContent = `Harga: Rp ${totalHarga.toLocaleString()}`;
+  ctx.font = "36px Poppins";
+  ctx.fillStyle = "#333";
+  ctx.fillText(`Nama: ${userName.value || "-"}`, 100, canvas.height - 120);
+  ctx.fillText(`Harga: Rp ${totalHarga}`, 100, canvas.height - 60);
+});
+
+// Reset
+document.getElementById('reset').onclick = ()=> {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  batches = [];
+  priceDisplay.textContent = "Harga: Rp 0";
+  refreshBatchList();
+};
+
+// Download JPG
+document.getElementById('downloadJpg').onclick = ()=> {
+  const link = document.createElement('a');
+  link.download = 'hasil_kolase.jpg';
+  link.href = canvas.toDataURL("image/jpeg");
+  link.click();
+};
+
+// Download PDF
+document.getElementById('downloadPdf').onclick = ()=> {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('p', 'pt', 'a4');
+  pdf.addImage(canvas.toDataURL("image/jpeg"), 'JPEG', 0, 0, 595, 842);
+  pdf.save('hasil_kolase.pdf');
+};
+
+// Print langsung
+document.getElementById('printNow').onclick = ()=> {
+  const win = window.open('');
+  win.document.write('<img src="'+canvas.toDataURL('image/png')+'" style="width:100%">');
+  win.document.close();
+  win.focus();
+  win.print();
+  win.close();
+};
+
+// Dark mode
+if(localStorage.getItem('theme')==='dark'){
+  document.body.classList.add('dark');
+  toggleDark.textContent = "☀️ Mode Terang";
+}
+toggleDark.onclick = ()=>{
+  document.body.classList.toggle('dark');
+  const dark = document.body.classList.contains('dark');
+  localStorage.setItem('theme', dark ? 'dark':'light');
+  toggleDark.textContent = dark ? "☀️ Mode Terang":"🌙 Mode Gelap";
+};
+
+// Auto rotate EXIF
+function loadImageWithEXIF(file){
+  return new Promise((resolve)=>{
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const img = new Image();
+      EXIF.getData(file, function(){
+        const orientation = EXIF.getTag(this, "Orientation");
+        img.onload = function(){
+          const c = document.createElement('canvas');
+          const cx = c.getContext('2d');
+          if(orientation>=5 && orientation<=8){ c.width=img.height; c.height=img.width; } 
+          else { c.width=img.width; c.height=img.height; }
+          switch(orientation){
+            case 3: cx.rotate(Math.PI); cx.drawImage(img,-img.width,-img.height); break;
+            case 6: cx.rotate(0.5*Math.PI); cx.drawImage(img,0,-img.height); break;
+            case 8: cx.rotate(-0.5*Math.PI); cx.drawImage(img,-img.width,0); break;
+            default: cx.drawImage(img,0,0);
+          }
+          const fixedImg = new Image();
+          fixedImg.onload = ()=>resolve(fixedImg);
+          fixedImg.src = c.toDataURL();
+        };
+        img.src = e.target.result;
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+}
 </script>
 </body>
 </html>
