@@ -1,310 +1,236 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SEDULUR FOTOCOPY — Kolase Foto A4</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kolase Foto — Final Portrait</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-:root {
-  --bg:#f4f7fb; --card:#fff; --text:#0f1720; --muted:#6b7280; --accent:#4F46E5;
+:root{
+  --bg:#f5f7fb; --card:#ffffff; --text:#111827; --muted:#6b7280; --accent:#4F46E5;
 }
-.dark {
-  --bg:#0b1220; --card:#0f1720; --text:#e6eef8; --muted:#9aa7bf; --accent:#6366F1;
-}
-html, body {margin:0; font-family:"Poppins", sans-serif; background:var(--bg); color:var(--text);}
-.wrap {max-width:1100px; margin:20px auto; padding:20px;}
-header {display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
-h1 {font-size:20px; margin:0;}
-.card {background:var(--card); border-radius:12px; padding:16px; box-shadow:0 4px 16px rgba(0,0,0,0.05);}
-.controls {display:flex; flex-direction:column; gap:10px;}
-label {font-size:13px; color:var(--muted);}
-input, select {padding:6px 8px; border-radius:8px; border:1px solid #ddd; min-width:90px;}
-button {border:none; border-radius:10px; padding:8px 14px; cursor:pointer; font-weight:600; transition:0.25s;}
-.download-btn {background: linear-gradient(135deg, #4F46E5, #9333EA); box-shadow:0 4px 12px rgba(147,51,234,0.4); color:#fff;}
-.download-btn:hover {transform:translateY(-2px) scale(1.03);}
-.warn {background:#ef4444; color:#fff;}
-.ok {background:var(--accent); color:#fff;}
-.ghost {background:transparent; border:1px solid #888; color:var(--text);}
-.ghost:hover {background:rgba(99,102,241,0.1);}
-main {display:grid; grid-template-columns:360px 1fr; gap:20px;}
-#canvas {width:100%; max-width:595px; border-radius:10px; background:white; box-shadow:0 4px 20px rgba(0,0,0,0.08);}
-.price {font-weight:600; color:var(--accent); font-size:16px; margin-top:6px;}
-#batchList {max-height:200px; overflow-y:auto;}
-@media print {.no-print {display:none;}}
+.dark{--bg:#0f1724; --card:#16202b; --text:#e6eef8; --muted:#94a3b8; --accent:#7c8cff;}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:"Poppins",sans-serif;background:var(--bg);color:var(--text)}
+.wrap{max-width:1100px;margin:20px auto;padding:20px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+h1{font-size:20px;margin:0}
+.card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 6px 20px rgba(0,0,0,0.06)}
+.controls{display:flex;flex-direction:column;gap:8px}
+label{font-size:13px;color:var(--muted)}
+input,select,button{font-family:inherit}
+input,select{padding:8px;border-radius:8px;border:1px solid #ddd}
+button{border:none;border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:600;transition:.18s}
+.ok{background:var(--accent);color:#fff}
+.ghost{background:transparent;border:1px solid rgba(0,0,0,0.08);color:var(--text)}
+.warn{background:#ef4444;color:#fff}
+.download-btn{background:linear-gradient(135deg,#4F46E5,#9333EA);color:#fff}
+main{display:grid;grid-template-columns:360px 1fr;gap:20px}
+canvas{width:100%;max-width:595px;border-radius:10px;background:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.06)}
+.price{font-weight:600;color:var(--accent);font-size:16px;margin-top:6px}
+#batchList{max-height:260px;overflow:auto;display:none;margin-top:8px}
+.batch-row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);margin-bottom:6px;background:rgba(0,0,0,0.01)}
+.small{font-size:13px;color:var(--muted)}
+@media print{.no-print{display:none}}
 </style>
 </head>
-
 <body>
 <div class="wrap">
-  <header class="no-print">
-    <h1>🖨️ SEDULUR FOTOCOPY — Kolase Foto A4</h1>
-    <button id="toggleDark" class="ghost">🌙 Mode Gelap</button>
-  </header>
+<header class="no-print">
+<h1>🖨️ Kolase Foto — Final</h1>
+<button id="toggleDark" class="ghost">🌙 Mode Gelap</button>
+</header>
 
-  <main>
-    <!-- Panel kiri -->
-    <section class="card no-print">
-      <div class="controls">
-        <label>Unggah Foto:</label>
-        <input type="file" id="upload" accept="image/*" multiple />
+<main>
+<section class="card no-print">
+<div class="controls">
+<label>Upload Foto (pilih banyak)</label>
+<input id="upload" type="file" accept="image/*" multiple>
 
-        <label>Pilih Ukuran (cm):</label>
-        <select id="sizeSelect">
-          <option value="2x3">2x3</option>
-          <option value="3x4">3x4</option>
-          <option value="4x6">4x6</option>
-          <option value="5x5">5x5</option>
-          <option value="6x9">6x9</option>
-          <option value="10x15">10x15 (4R)</option>
-          <option value="custom">Custom...</option>
-        </select>
+<label>Pilih Ukuran Kotak (cm)</label>
+<select id="sizeSelect">
+<option value="2x3">2 x 3</option>
+<option value="3x4">3 x 4</option>
+<option value="4x6">4 x 6</option>
+<option value="5x5">5 x 5</option>
+<option value="6x9">6 x 9</option>
+<option value="10x15">10 x 15 (4R)</option>
+<option value="custom">Custom...</option>
+</select>
 
-        <div id="customSize" style="display:none;gap:6px;align-items:center;">
-          <input type="number" id="customW" placeholder="Lebar (cm)" style="width:100px;">
-          <input type="number" id="customH" placeholder="Tinggi (cm)" style="width:100px;">
-          <button id="addCustom" class="ok">➕ Add Custom</button>
-        </div>
+<div id="customSize" style="display:none;gap:8px;align-items:center;">
+<input id="customW" type="number" placeholder="Lebar (cm)" style="width:110px">
+<input id="customH" type="number" placeholder="Tinggi (cm)" style="width:110px">
+</div>
 
-        <label>Atur Margin (px):</label>
-        <input type="number" id="margin" value="20" />
+<label>Margin (px)</label>
+<input id="margin" type="number" value="70">
+<label>Gap antar foto (px)</label>
+<input id="gap" type="number" value="20">
+<label>Nama User</label>
+<input id="userName" type="text" placeholder="Masukkan nama pengguna">
+<div class="price" id="priceDisplay">Harga: Rp 0</div>
 
-        <label>Atur Jarak/Gep antar foto (px):</label>
-        <input type="number" id="gap" value="10" />
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+<button id="previewBtn" class="ok">👁️ Preview Cepat</button>
+<button id="generateBtn" class="ghost">📄 Buat Kolase</button>
+<button id="downloadPdf" class="download-btn">💾 Download PDF</button>
+<button id="printNow" class="download-btn">🖨️ Print</button>
+<button id="reset" class="warn">🔁 Reset</button>
+</div>
+<div id="batchList" class="small"></div>
+</div>
+</section>
 
-        <label>Nama User:</label>
-        <input type="text" id="userName" placeholder="Masukkan nama pengguna">
-
-        <div class="price" id="priceDisplay">Harga: Rp 0</div>
-
-        <label>Daftar Batch:</label>
-        <div id="batchList"></div>
-
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-          <button class="ok" id="generate">📄 Buat Kolase</button>
-          <button class="download-btn" id="downloadJpg">🖼️ Download JPG</button>
-          <button class="download-btn" id="downloadPdf">💾 Download PDF</button>
-          <button class="download-btn" id="printNow">🖨️ Print Langsung</button>
-          <button class="warn" id="reset">🔁 Reset</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Panel kanan -->
-    <section class="card">
-      <canvas id="canvas" width="2480" height="3508"></canvas>
-    </section>
-  </main>
+<section class="card">
+<canvas id="canvas" width="1240" height="1754"></canvas>
+</section>
+</main>
 </div>
 
 <script>
+// Elemen & state
 const upload = document.getElementById('upload');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const generateBtn = document.getElementById('generate');
+const sizeSelect = document.getElementById('sizeSelect');
+const customSize = document.getElementById('customSize');
+const customW = document.getElementById('customW');
+const customH = document.getElementById('customH');
 const marginInput = document.getElementById('margin');
 const gapInput = document.getElementById('gap');
 const priceDisplay = document.getElementById('priceDisplay');
-const sizeSelect = document.getElementById('sizeSelect');
 const userName = document.getElementById('userName');
-const toggleDark = document.getElementById('toggleDark');
-const addCustom = document.getElementById('addCustom');
+const previewBtn = document.getElementById('previewBtn');
+const generateBtn = document.getElementById('generateBtn');
+const downloadPdf = document.getElementById('downloadPdf');
+const printNow = document.getElementById('printNow');
+const resetBtn = document.getElementById('reset');
 const batchList = document.getElementById('batchList');
+const toggleDark = document.getElementById('toggleDark');
 
-let batches = [];
+let batches=[];
 
-sizeSelect.addEventListener('change', ()=>{
-  document.getElementById('customSize').style.display = sizeSelect.value === 'custom' ? 'flex' : 'none';
+// Dark mode
+if(localStorage.getItem('theme')==='dark'){document.body.classList.add('dark'); toggleDark.textContent='☀️ Mode Terang';}
+toggleDark.onclick=()=>{document.body.classList.toggle('dark'); const d=document.body.classList.contains('dark'); localStorage.setItem('theme',d?'dark':'light'); toggleDark.textContent=d?'☀️ Mode Terang':'🌙 Mode Gelap';}
+
+// Custom size display
+sizeSelect.addEventListener('change',()=>{customSize.style.display=sizeSelect.value==='custom'?'flex':'none';});
+
+// Upload otomatis batch
+upload.addEventListener('change',(e)=>{
+  const files=Array.from(e.target.files||[]);
+  if(!files.length)return;
+  if(sizeSelect.value==='custom'){const cw=parseFloat(customW.value), ch=parseFloat(customH.value); if(!cw||!ch){batches.push({files,size:'2x3',copy:1});}else{batches.push({files,size:'custom',customW:cw,customH:ch,copy:1});}}
+  else batches.push({files,size:sizeSelect.value,copy:1});
+  upload.value='';
 });
 
-// Tambah batch
-function addBatch(files, size, customW=0, customH=0){
-  if(files.length === 0){
-    alert("❌ Upload foto dulu sebelum menambahkan batch!");
-    return;
-  }
-  batches.push({ files, size, customW, customH, copy: 1 });
-  refreshBatchList();
-  alert(`✅ ${files.length} foto ditambahkan (${size}${size==='custom'?` ${customW}x${customH} cm`:""})`);
-}
-
-// Tampilkan daftar batch
+// Refresh batch list
 function refreshBatchList(){
-  batchList.innerHTML = "";
-  batches.forEach((batch, index)=>{
-    const w = batch.size === 'custom' ? batch.customW : batch.size.split('x')[0];
-    const h = batch.size === 'custom' ? batch.customH : batch.size.split('x')[1];
-    const div = document.createElement('div');
-    div.style.display = "flex"; div.style.alignItems = "center"; div.style.gap = "6px";
-
-    const info = document.createElement('span');
-    info.textContent = `${batch.files.length} foto — ${w}x${h} cm`;
-
-    const copyInput = document.createElement('input');
-    copyInput.type = "number"; copyInput.value = batch.copy || 1; copyInput.min = 1;
-    copyInput.style.width = "60px";
-    copyInput.addEventListener('change', ()=> batch.copy = parseInt(copyInput.value));
-
-    const delBtn = document.createElement('button');
-    delBtn.textContent = "❌"; delBtn.className="warn";
-    delBtn.onclick = ()=> { batches.splice(index,1); refreshBatchList(); };
-
-    div.appendChild(info);
-    div.appendChild(copyInput);
-    div.appendChild(delBtn);
-    batchList.appendChild(div);
+  batchList.innerHTML='';
+  batches.forEach((b,idx)=>{
+    const row=document.createElement('div'); row.className='batch-row';
+    const sizeText=b.size==='custom'?`${b.customW} x ${b.customH} cm`:b.size.replace('x',' x ');
+    row.innerHTML=`<div style="flex:1"><strong>Batch ${idx+1}</strong><div class="small">${b.files.length} foto — ${sizeText}</div></div>`;
+    const copies=document.createElement('input'); copies.type='number'; copies.value=b.copy||1; copies.min=1; copies.style.width='64px'; copies.addEventListener('change',()=>b.copy=parseInt(copies.value)||1);
+    const del=document.createElement('button'); del.textContent='❌'; del.className='warn'; del.style.marginLeft='8px'; del.onclick=()=>{batches.splice(idx,1);refreshBatchList();};
+    row.appendChild(copies); row.appendChild(del);
+    batchList.appendChild(row);
   });
 }
 
-// Upload file (preset)
-upload.addEventListener('change', e=>{
-  const files = Array.from(e.target.files);
-  const currentSize = sizeSelect.value;
-  if(currentSize !== 'custom'){
-    addBatch(files, currentSize);
-  }
-});
+// Load image + EXIF
+function loadImageWithEXIF(file){return new Promise(resolve=>{const reader=new FileReader();reader.onload=function(e){const img=new Image();EXIF.getData(file,function(){const orientation=EXIF.getTag(this,'Orientation');img.onload=function(){const tc=document.createElement('canvas');const tctx=tc.getContext('2d');if(orientation>=5&&orientation<=8){tc.width=img.height;tc.height=img.width;}else{tc.width=img.width;tc.height=img.height;}switch(orientation){case 3:tctx.rotate(Math.PI);tctx.drawImage(img,-img.width,-img.height);break;case 6:tctx.rotate(0.5*Math.PI);tctx.drawImage(img,0,-img.height);break;case 8:tctx.rotate(-0.5*Math.PI);tctx.drawImage(img,-img.width,0);break;default:tctx.drawImage(img,0,0);}const fixed=new Image();fixed.onload=()=>resolve(fixed);fixed.src=tc.toDataURL('image/jpeg');};img.src=e.target.result;});};reader.readAsDataURL(file);});}
 
-// Tombol Add Custom
-addCustom.addEventListener('click', ()=>{
-  const customW = parseFloat(document.getElementById('customW').value);
-  const customH = parseFloat(document.getElementById('customH').value);
-  if(isNaN(customW) || isNaN(customH) || customW <=0 || customH <=0){
-    alert("❌ Masukkan ukuran valid!");
-    return;
-  }
-  const files = Array.from(upload.files);
-  addBatch(files, 'custom', customW, customH);
-});
+// Rotate landscape -> portrait
+function rotateImage90(img){return new Promise(resolve=>{const tc=document.createElement('canvas');tc.width=img.height; tc.height=img.width; const tctx=tc.getContext('2d');tctx.translate(tc.width/2,tc.height/2);tctx.rotate(0.5*Math.PI);tctx.drawImage(img,-img.width/2,-img.height/2); const out=new Image(); out.onload=()=>resolve(out); out.src=tc.toDataURL('image/jpeg');});}
 
-// Generate Kolase
-generateBtn.addEventListener('click', async ()=> {
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  const margin = parseInt(marginInput.value);
-  const gap = parseInt(gapInput.value);
-  const pxPerCm = 118;
-  let x = margin, y = margin, maxHeight = 0;
-  let totalHarga = 0;
-  const areaA5 = 148*118 * 210*118;
-
-  for (const batch of batches) {
-    let wcm,hcm;
-    if(batch.size === 'custom'){
-      wcm = batch.customW; hcm = batch.customH;
-    } else {
-      [wcm,hcm] = batch.size.split('x').map(Number);
-    }
-    const photoW = wcm * pxPerCm;
-    const photoH = hcm * pxPerCm;
-
-    for (const file of batch.files) {
-      const img = await loadImageWithEXIF(file);
-      let drawW = photoW, drawH = photoH;
-      if(img.width > img.height && photoH > photoW) [drawW, drawH] = [photoH, photoW];
-      const ratio = Math.min(drawW / img.width, drawH / img.height);
-      const dw = img.width * ratio;
-      const dh = img.height * ratio;
-      const offsetX = (drawW - dw)/2;
-      const offsetY = (drawH - dh)/2;
-
+// Render Collage
+async function renderCollage(isPreview=true){
+  if(!batches.length){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);priceDisplay.textContent='Harga: Rp 0'; return;}
+  const fullW=2480, fullH=3508; const scale=isPreview?0.5:1; canvas.width=Math.round(fullW*scale); canvas.height=Math.round(fullH*scale);
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  const margin=Math.max(0,parseInt(marginInput.value)||20)*scale;
+  const gap=Math.max(0,parseInt(gapInput.value)||10)*scale;
+  const pxPerCm=118*scale;
+  let x=margin, y=margin, rowMaxH=0;
+  let totalHarga=0;
+  const areaA5=148*118*210*118; // area A5 approx full px
+  let totalFoto=0;
+  for(const batch of batches){
+    let wcm,hcm;if(batch.size==='custom'){wcm=batch.customW;hcm=batch.customH;}else{[wcm,hcm]=batch.size.split('x').map(Number);}
+    const boxW=wcm*pxPerCm; const boxH=hcm*pxPerCm;
+    for(const file of batch.files){
+      let img=await loadImageWithEXIF(file);
+      if(img.width>img.height) img=await rotateImage90(img);
+      const srcW=img.width, srcH=img.height;
+      const srcRatio=srcW/srcH; const targetRatio=boxW/boxH;
+      let sx=0,sy=0,sW=srcW,sH=srcH;
+      if(srcRatio>targetRatio){sW=Math.round(srcH*targetRatio); sx=Math.round((srcW-sW)/2);}else if(srcRatio<targetRatio){sH=Math.round(srcW/targetRatio); sy=Math.round((srcH-sH)/2);}
       for(let c=0;c<(batch.copy||1);c++){
-        ctx.drawImage(img, x + offsetX, y + offsetY, dw, dh);
-        x += drawW + gap;
-        maxHeight = Math.max(maxHeight, drawH);
-        const fotoArea = drawW*dh;
-        totalHarga += fotoArea > areaA5 ? 2000 : 1000;
-        if(x + drawW > canvas.width - margin){ x = margin; y += maxHeight + gap; maxHeight=0; }
+        if(x+boxW>canvas.width-margin){x=margin; y+=rowMaxH+gap; rowMaxH=0;}
+        ctx.drawImage(img,sx,sy,sW,sH,x,y,boxW,boxH);
+        const borderWidth=Math.max(2,Math.round(2*scale));
+        ctx.lineWidth=borderWidth; ctx.strokeStyle='#000';
+        ctx.strokeRect(x+borderWidth/2,y+borderWidth/2,boxW-borderWidth,boxH-borderWidth);
+        x+=boxW+gap; rowMaxH=Math.max(rowMaxH,boxH);
+        totalFoto++; // hitung jumlah foto
       }
     }
   }
+  totalHarga=totalFoto>8?2000:1000; // 6 foto (2x3) sebagai batas A5
+  const fontSize=Math.max(12,Math.round(36*scale));
+  ctx.font=`${fontSize}px Poppins`; ctx.fillStyle='#333';
+  ctx.fillText(`Nama: ${userName.value||"-"}`,100*scale,canvas.height-120*scale);
+  ctx.fillText(`Harga: Rp ${totalHarga.toLocaleString()}`,100*scale,canvas.height-60*scale);
+  priceDisplay.textContent=`Harga: Rp ${totalHarga.toLocaleString()}`;
+}
 
-  priceDisplay.textContent = `Harga: Rp ${totalHarga.toLocaleString()}`;
-  ctx.font = "36px Poppins";
-  ctx.fillStyle = "#333";
-  ctx.fillText(`Nama: ${userName.value || "-"}`, 100, canvas.height - 120);
-  ctx.fillText(`Harga: Rp ${totalHarga}`, 100, canvas.height - 60);
+// Tombol interaksi
+previewBtn.addEventListener('click',async()=>{
+  previewBtn.disabled=true; previewBtn.textContent='⏳ Rendering...';
+  await renderCollage(true);
+  previewBtn.textContent='👁️ Preview Cepat'; previewBtn.disabled=false;
 });
 
-// Reset
-document.getElementById('reset').onclick = ()=> {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  batches = [];
-  priceDisplay.textContent = "Harga: Rp 0";
-  refreshBatchList();
-};
+generateBtn.addEventListener('click',async()=>{
+  generateBtn.disabled=true; generateBtn.textContent='⏳ Membuat...';
+  await renderCollage(true);
+  refreshBatchList(); batchList.style.display='block';
+  generateBtn.textContent='📄 Buat Kolase'; generateBtn.disabled=false;
+});
 
-// Download JPG
-document.getElementById('downloadJpg').onclick = ()=> {
-  const link = document.createElement('a');
-  link.download = 'hasil_kolase.jpg';
-  link.href = canvas.toDataURL("image/jpeg");
-  link.click();
-};
-
-// Download PDF
-document.getElementById('downloadPdf').onclick = ()=> {
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF('p', 'pt', 'a4');
-  pdf.addImage(canvas.toDataURL("image/jpeg"), 'JPEG', 0, 0, 595, 842);
+downloadPdf.addEventListener('click',async()=>{
+  if(!batches.length)return;
+  downloadPdf.disabled=true; downloadPdf.textContent='⏳ Menyiapkan...';
+  await renderCollage(false);
+  const { jsPDF }=window.jspdf;
+  const pdf=new jsPDF('p','pt','a4');
+  pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,595,842);
   pdf.save('hasil_kolase.pdf');
-};
+  downloadPdf.disabled=false; downloadPdf.textContent='💾 Download PDF';
+});
 
-// Print langsung
-document.getElementById('printNow').onclick = ()=> {
-  const win = window.open('');
-  win.document.write('<img src="'+canvas.toDataURL('image/png')+'" style="width:100%">');
-  win.document.close();
-  win.focus();
-  win.print();
-  win.close();
-};
+printNow.addEventListener('click',async()=>{
+  if(!batches.length)return;
+  printNow.disabled=true; printNow.textContent='⏳ Menyiapkan...';
+  await renderCollage(false);
+  const w=window.open(''); w.document.write(`<img src="${canvas.toDataURL('image/png')}" style="width:100%">`);
+  w.document.close(); w.focus(); w.print(); w.close();
+  printNow.disabled=false; printNow.textContent='🖨️ Print';
+});
 
-// Dark mode
-if(localStorage.getItem('theme')==='dark'){
-  document.body.classList.add('dark');
-  toggleDark.textContent = "☀️ Mode Terang";
-}
-toggleDark.onclick = ()=>{
-  document.body.classList.toggle('dark');
-  const dark = document.body.classList.contains('dark');
-  localStorage.setItem('theme', dark ? 'dark':'light');
-  toggleDark.textContent = dark ? "☀️ Mode Terang":"🌙 Mode Gelap";
-};
+resetBtn.addEventListener('click',()=>{
+  batches=[]; refreshBatchList(); batchList.style.display='none';
+  ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  priceDisplay.textContent='Harga: Rp 0'; upload.value='';
+});
 
-// Auto rotate EXIF
-function loadImageWithEXIF(file){
-  return new Promise((resolve)=>{
-    const reader = new FileReader();
-    reader.onload = function(e){
-      const img = new Image();
-      EXIF.getData(file, function(){
-        const orientation = EXIF.getTag(this, "Orientation");
-        img.onload = function(){
-          const c = document.createElement('canvas');
-          const cx = c.getContext('2d');
-          if(orientation>=5 && orientation<=8){ c.width=img.height; c.height=img.width; } 
-          else { c.width=img.width; c.height=img.height; }
-          switch(orientation){
-            case 3: cx.rotate(Math.PI); cx.drawImage(img,-img.width,-img.height); break;
-            case 6: cx.rotate(0.5*Math.PI); cx.drawImage(img,0,-img.height); break;
-            case 8: cx.rotate(-0.5*Math.PI); cx.drawImage(img,-img.width,0); break;
-            default: cx.drawImage(img,0,0);
-          }
-          const fixedImg = new Image();
-          fixedImg.onload = ()=>resolve(fixedImg);
-          fixedImg.src = c.toDataURL();
-        };
-        img.src = e.target.result;
-      });
-    };
-    reader.readAsDataURL(file);
-  });
-}
+ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
 </script>
 </body>
 </html>
