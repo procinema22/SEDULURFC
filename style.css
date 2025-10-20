@@ -99,4 +99,13 @@
   
   /* print: hide controls */
   @media print{.no-print{display:none}}
+  .kolase-wrapper { position: relative; display: inline-block; }
+  #logo {
+    position: absolute;
+    top: 10px;    /* jarak dari atas */
+    left: 10px;   /* posisi kiri */
+    width: 100px;
+    height: auto;
+    z-index: 10;  /* di atas canvas */
+  }
   

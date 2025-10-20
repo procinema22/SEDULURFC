@@ -328,26 +328,9 @@ downloadPdf.onclick = async () => {
       pdf.addImage(pg.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 595, 842);
     });
 
-    // ====== NAMA FILE OTOMATIS DENGAN TANGGAL & JAM ======
-const namaPengguna = (userName.value || "TanpaNama").replace(/\s+/g, "_");
-const waktuSekarang = new Date();
-const tanggal = waktuSekarang.toLocaleDateString("id-ID").replace(/\//g, "-");
-const jam = waktuSekarang.toTimeString().split(" ")[0].replace(/:/g, "-");
-const namaFile = `-${namaPengguna}-${tanggal}_${jam}.pdf`;
-
-// buat blob dan buka PDF di tab baru (dengan nama unik)
-const pdfBlob = pdf.output('blob');
-const blobUrl = URL.createObjectURL(pdfBlob);
-const newTab = window.open(blobUrl, '_blank');
-
-// untuk sebagian browser, kita bisa set nama file untuk tombol download manual
-if (newTab) {
-  const a = newTab.document.createElement('a');
-  a.href = blobUrl;
-  a.download = namaFile;
-  a.click();
-}
-
+    const pdfBlob = pdf.output('blob');
+    const blobUrl = URL.createObjectURL(pdfBlob);
+    window.open(blobUrl, '_blank');
 
   } catch (err) {
     console.error(err); alert('Gagal membuat PDF. Coba lagi.');
@@ -364,44 +347,72 @@ resetBtn.onclick = () => {
   userName.value = 'SEDULUR FOTOCOPY';
   pageNav.style.display = 'none'; pageIndicator.textContent = 'Halaman 0 / 0';
 };
-
-function updatePricePreview() {
-  const totalPhotosCount = batches.reduce((acc, b) => acc + (b.files.length || 0) * (b.copy || 1), 0);
-  let previewPrice = 0;
-  if (modeSelect.value === 'normal') {
-    previewPrice = 1000;
-  } else {
-    const hargaPerFotoVal = parseInt(hargaPerFotoInput.value) || 1000;
-    previewPrice = totalPhotosCount * hargaPerFotoVal;
+/* updatePricePreview: preview harga sesuai tinggi tiap halaman */
+async function updatePricePreview() {
+    if (!batches.length) { 
+      priceDisplay.textContent = 'Harga: Rp 0 (preview)';
+      return;
+    }
+  
+    try {
+      // render halaman sementara untuk dapat tinggi terpakai tiap halaman
+      const { usedMmPerPage } = await renderAllPagesToCanvases();
+  
+      // hitung harga tiap halaman: ≤ setengah A4 = 1000, > setengah = 2000
+      const previewPrice = hitungHargaDariUsedMm(usedMmPerPage);
+  
+      priceDisplay.textContent = `Harga: Rp ${previewPrice.toLocaleString()} (preview)`;
+    } catch (err) {
+      console.error(err);
+      priceDisplay.textContent = 'Harga: Rp 0 (preview error)';
+    }
   }
-  priceDisplay.textContent = `Harga: Rp ${previewPrice.toLocaleString()} (preview)`;
-}
+  
+  /* hitungHargaDariUsedMm: setiap halaman dihitung independen */
+  function hitungHargaDariUsedMm(usedMmPerPage) {
+    let totalHarga = 0;
+    const halfPageMm = 297 / 2; // setengah A4 = 148.5 mm
+    usedMmPerPage.forEach(used => {
+      if (used <= halfPageMm) totalHarga += 1000;   // ≤ setengah A4
+      else totalHarga += 2000;                      // > setengah A4
+    });
+    return totalHarga;
+  }
+  
+  /* contoh: panggil updatePricePreview() saat upload atau ubah copy */
+  upload.onchange = async e => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    if (sizeSelect.value === 'custom') {
+      const cw = parseFloat(customW.value), ch = parseFloat(customH.value);
+      if (!cw || !ch) batches.push({ files, size: '2x3', copy: 1 });
+      else batches.push({ files, size: 'custom', customW: cw, customH: ch, copy: 1 });
+    } else {
+      batches.push({ files, size: sizeSelect.value, copy: 1 });
+    }
+    upload.value = '';
+    refreshBatchList();
+    await updatePricePreview(); // <<< update harga preview sesuai tinggi halaman
+  };
+  
+  /* refreshBatchList: update harga setiap kali copy diubah */
+  function refreshBatchList() {
+    batchList.innerHTML = '';
+    batches.forEach((b, i) => {
+      const row = document.createElement('div'); row.className = 'batch-row';
+      const sizeText = b.size === 'custom' ? `${b.customW}x${b.customH} cm` : b.size.replace('x',' x ');
+      row.innerHTML = `<div style="flex:1"><strong>Batch ${i+1}</strong><div class="small">${b.files.length} foto — ${sizeText}</div></div>`;
+      const copies = document.createElement('input'); copies.type='number'; copies.value=b.copy||1; copies.min=1; copies.style.width='60px';
+      copies.onchange = async () => { b.copy = Math.max(1, parseInt(copies.value) || 1); await updatePricePreview(); };
+      const del = document.createElement('button'); del.textContent='❌'; del.className='warn';
+      del.onclick = async () => { batches.splice(i,1); refreshBatchList(); await updatePricePreview(); };
+      row.append(copies, del);
+      batchList.appendChild(row);
+    });
+    batchList.style.display = batches.length ? 'block' : 'none';
+  }
+    
 
 /* inisialisasi kanvas putih */
 ctx.fillStyle = '#fff';
 ctx.fillRect(0,0,canvas.width,canvas.height);
-
-/* ====== FIX TAMBAHAN: pastikan footer tampil di HALAMAN TERAKHIR ====== */
-function tambahkanFooterKeHalamanTerakhir(pages, totalHarga) {
-    if (modeSelect.value !== 'normal' || !pages.length) return;
-  
-    const lastIdx = pages.length - 1;
-    const lastCanvas = pages[lastIdx];
-    const ctxLast = lastCanvas.getContext('2d');
-    const fullW = lastCanvas.width;
-    const fullH = lastCanvas.height;
-    const pxPerCm = 118;
-    const footerHeightMm = 20;
-    const footerPx = (footerHeightMm / 10) * pxPerCm;
-  
-    ctxLast.save();
-    ctxLast.font = `48px Poppins`;
-    ctxLast.fillStyle = '#000';
-    const footerX = (Math.max(20, (parseFloat(marginInputMm.value) || 5) / 10 * pxPerCm)) + 20;
-    const footerYName = fullH - footerPx + 30;
-    const footerYPrice = footerYName + 60;
-    ctxLast.fillText(`Nama: ${userName.value || '-'}`, footerX, footerYName);
-    ctxLast.fillText(`Harga: Rp ${totalHarga.toLocaleString('id-ID')}`, footerX, footerYPrice);
-    ctxLast.restore();
-  }
-  

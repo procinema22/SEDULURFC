@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>KOLASE FOTO OTOMATIS SEDULUR</title>
+<title>Kolase Foto — Final (Cover, A4 Portrait)</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -15,23 +15,28 @@
 <body>
 <div class="wrap">
   <div class="header-row no-print">
-    <h1>🖨️ KOLASE FOTO OTOMATIS SEDULUR</h1>
+    <h1>🖨️ Kolase Foto </h1>
     <div class="header-controls">
       <span class="muted-label">Mode Gelap</span>
       <div id="darkSwitch" class="switch" title="Toggle Mode Gelap (UI saja)">
-        <div class="knob"></div>
+       
+        
       </div>
     </div>
   </div>
-
+  <div class="knob"></div>
+  <div class="kolase-wrapper">
+    <img id="logo" src="logo.png" alt="Logo Perusahaan" />
+    <canvas id="canvas" width="595" height="842"></canvas>
+  </div>
   <main>
     <!-- Panel kontrol -->
     <section class="card no-print">
       <div class="controls">
         <label>Pilih Mode Harga</label>
         <select id="modeSelect">
-          <option value="normal">Mode Laprak</option>
-          <option value="perfoto">Mode CETAK FOTO</option>
+          <option value="normal">Mode Normal</option>
+          <option value="perfoto">Mode Per Foto</option>
         </select>
 
         <div id="hargaPerFotoBox" style="display:none;">
@@ -71,7 +76,7 @@
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
           <button id="previewBtn" class="ok">👁️ Preview Cepat</button>
           <button id="generateBtn" class="ghost">📄 Buat Kolase</button>
-          <button id="downloadPdf" class="download-btn">💾 CETAK HASIL/DOWNLOAD</button>
+          <button id="downloadPdf" class="download-btn">💾 Buka PDF di Tab Baru</button>
           <button id="reset" class="warn">🔁 Reset</button>
         </div>
 
