@@ -328,9 +328,26 @@ downloadPdf.onclick = async () => {
       pdf.addImage(pg.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 595, 842);
     });
 
-    const pdfBlob = pdf.output('blob');
-    const blobUrl = URL.createObjectURL(pdfBlob);
-    window.open(blobUrl, '_blank');
+    // ====== NAMA FILE OTOMATIS DENGAN TANGGAL & JAM ======
+const namaPengguna = (userName.value || "TanpaNama").replace(/\s+/g, "_");
+const waktuSekarang = new Date();
+const tanggal = waktuSekarang.toLocaleDateString("id-ID").replace(/\//g, "-");
+const jam = waktuSekarang.toTimeString().split(" ")[0].replace(/:/g, "-");
+const namaFile = `-${namaPengguna}-${tanggal}_${jam}.pdf`;
+
+// buat blob dan buka PDF di tab baru (dengan nama unik)
+const pdfBlob = pdf.output('blob');
+const blobUrl = URL.createObjectURL(pdfBlob);
+const newTab = window.open(blobUrl, '_blank');
+
+// untuk sebagian browser, kita bisa set nama file untuk tombol download manual
+if (newTab) {
+  const a = newTab.document.createElement('a');
+  a.href = blobUrl;
+  a.download = namaFile;
+  a.click();
+}
+
 
   } catch (err) {
     console.error(err); alert('Gagal membuat PDF. Coba lagi.');
