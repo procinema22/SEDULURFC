@@ -6,106 +6,96 @@
 /* ================= STYLE UMUM ================= */
 /* Warna default (mode terang) */
 :root{
-    --bg:#f5f7fb;
-    --card:#fff;
-    --text:#111827;
-    --muted:#0055ff;
-    --accent:#4F46E5;
-    --border:#000;
-  }
-  /* Mode gelap (abu-kehitaman lembut) */
-  .dark{
-    --bg:#0f1724;
-    --card:#16202b;
-    --text:#ffffff;
-    --muted:#ffffff;
-    --accent:#7c8cff;
-    --border:#fff;
-  }
-  
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0;font-family:"Poppins",sans-serif;background:var(--bg);color:var(--text)}
-  .wrap{max-width:1100px;margin:20px auto;padding:20px}
-  .header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-  h1{font-size:20px;margin:0}
-  .card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
-  .controls{display:flex;flex-direction:column;gap:8px}
-  label{font-size:13px;color:var(--muted)}
-  input,select,button{font-family:inherit}
-  input,select{padding:8px;border-radius:8px;border:1px solid #ddd;background:transparent;color:var(--text)}
-  button{border:none;border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:600;transition:.18s}
-  .ok{background:var(--accent);color:#fff}
-  .ghost{background:linear-gradient(135deg,#1c1875,#33ea9e);color:#fff}
-  .warn{background:#ef4444;color:#fff}
-  .download-btn{background:linear-gradient(135deg,#4F46E5,#9333EA);color:#fff}
-  main{display:grid;grid-template-columns:360px 1fr;gap:20px}
-  .canvas-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
-  canvas{width:100%;max-width:595px;border-radius:10px;background:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.06);border:2px solid var(--border)}
-  .page-nav{display:flex;gap:8px;align-items:center;margin-top:6px}
-  .page-nav button{padding:6px 10px;border-radius:8px}
-  .price{font-weight:600;color:var(--accent);font-size:16px;margin-top:6px}
-  #batchList{max-height:260px;overflow:auto;display:none;margin-top:8px}
-  .batch-row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,.06);margin-bottom:6px;background:rgba(0,0,0,.01)}
-  .small{font-size:13px;color:var(--muted)}
-  .footer-note{font-size:12px;color:var(--muted)}
-  
-  /* switch kecil untuk mode gelap */
-  .switch {
-    position: relative;
-    width: 46px;
-    height: 26px;
-    background: #ddd;
-    border-radius: 16px;
-    display:inline-block;
-    vertical-align: middle;
-    cursor:pointer;
-  }
-  .switch .knob{
-    position:absolute;
-    top:3px;
-    left:3px;
-    width:20px;height:20px;border-radius:50%;
-    background:white;box-shadow:0 1px 3px rgba(0,0,0,.2);
-    transition: transform .18s, left .18s;
-  }
-  .switch.on{ background:#323244; }
-  .switch.on .knob{ transform: translateX(20px); left:3px; }
-  .header-controls { display:flex; gap:10px; align-items:center; }
-  .muted-label{font-size:13px;color:var(--muted);margin-right:6px}
-  
-  /* ================= FIX WARNA SELECT ================= */
-  select {
-    background-color: #ffffff !important;
-    color: #111827 !important;
-    border: 1px solid #ccc !important;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    padding-right: 12px;
-  }
-  
-  select:focus {
-    outline: 2px solid var(--accent);
-  }
-  
-  /* pastikan select tetap putih meskipun mode gelap aktif */
-  .dark select {
-    background-color: #ffffff !important;
-    color: #111827 !important;
-  }
-  
-  /* hide default focus ring on buttons on some browsers */
-  button:focus { outline: none; }
-  
-  /* print: hide controls */
-  @media print{.no-print{display:none}}
-  .kolase-wrapper { position: relative; display: inline-block; }
-  #logo {
-    position: absolute;
-    top: 10px;    /* jarak dari atas */
-    left: 10px;   /* posisi kiri */
-    width: 100px;
-    height: auto;
-    z-index: 10;  /* di atas canvas */
-  }
-  
+  --bg:#f5f7fb;
+  --card:#fff;
+  --text:#111827;
+  --muted:#0055ff;
+  --accent:#4F46E5;
+  --border:#000;
+}
+/* Mode gelap (abu-kehitaman lembut) */
+.dark{
+  --bg:#0f1724;
+  --card:#16202b;
+  --text:#ffffff;
+  --muted:#ffffff;
+  --accent:#7c8cff;
+  --border:#fff;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:"Poppins",sans-serif;background:var(--bg);color:var(--text)}
+.wrap{max-width:1100px;margin:20px auto;padding:20px}
+.header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+h1{font-size:20px;margin:0}
+.card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+.controls{display:flex;flex-direction:column;gap:8px}
+label{font-size:13px;color:var(--muted)}
+input,select,button{font-family:inherit}
+input,select{padding:8px;border-radius:8px;border:1px solid #ddd;background:transparent;color:var(--text)}
+button{border:none;border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:600;transition:.18s}
+.ok{background:var(--accent);color:#fff}
+.ghost{background:linear-gradient(135deg,#1c1875,#33ea9e);color:#fff}
+.warn{background:#ef4444;color:#fff}
+.download-btn{background:linear-gradient(135deg,#4F46E5,#9333EA);color:#fff}
+main{display:grid;grid-template-columns:360px 1fr;gap:20px}
+.canvas-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
+canvas{width:100%;max-width:595px;border-radius:10px;background:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.06);border:2px solid var(--border)}
+.page-nav{display:flex;gap:8px;align-items:center;margin-top:6px}
+.page-nav button{padding:6px 10px;border-radius:8px}
+.price{font-weight:600;color:var(--accent);font-size:16px;margin-top:6px}
+#batchList{max-height:260px;overflow:auto;display:none;margin-top:8px}
+.batch-row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,.06);margin-bottom:6px;background:rgba(0,0,0,.01)}
+.small{font-size:13px;color:var(--muted)}
+.footer-note{font-size:12px;color:var(--muted)}
+
+/* switch kecil untuk mode gelap */
+.switch {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  background: #ddd;
+  border-radius: 16px;
+  display:inline-block;
+  vertical-align: middle;
+  cursor:pointer;
+}
+.switch .knob{
+  position:absolute;
+  top:3px;
+  left:3px;
+  width:20px;height:20px;border-radius:50%;
+  background:white;box-shadow:0 1px 3px rgba(0,0,0,.2);
+  transition: transform .18s, left .18s;
+}
+.switch.on{ background:#323244; }
+.switch.on .knob{ transform: translateX(20px); left:3px; }
+.header-controls { display:flex; gap:10px; align-items:center; }
+.muted-label{font-size:13px;color:var(--muted);margin-right:6px}
+
+/* ================= FIX WARNA SELECT ================= */
+select {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  border: 1px solid #ccc !important;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 12px;
+}
+
+select:focus {
+  outline: 2px solid var(--accent);
+}
+
+/* pastikan select tetap putih meskipun mode gelap aktif */
+.dark select {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+/* hide default focus ring on buttons on some browsers */
+button:focus { outline: none; }
+
+/* print: hide controls */
+@media print{.no-print{display:none}}
