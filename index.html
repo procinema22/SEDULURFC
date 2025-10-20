@@ -1,323 +1,99 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kolase Foto — Final Portrait</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>KOLASE FOTO OTOMATIS SEDULUR</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<!-- dependensi: exif-js dan jsPDF -->
 <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<style>
-:root{
-  --bg:#f5f7fb; --card:#ffffff; --text:#111827; --muted:#6b7280; --accent:#4F46E5;
-}
-.dark{--bg:#0f1724; --card:#16202b; --text:#e6eef8; --muted:#94a3b8; --accent:#7c8cff;}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;font-family:"Poppins",sans-serif;background:var(--bg);color:var(--text)}
-.wrap{max-width:1100px;margin:20px auto;padding:20px}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-h1{font-size:20px;margin:0}
-.card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 6px 20px rgba(0,0,0,0.06)}
-.controls{display:flex;flex-direction:column;gap:8px}
-label{font-size:13px;color:var(--muted)}
-input,select,button{font-family:inherit}
-input,select{padding:8px;border-radius:8px;border:1px solid #ddd}
-button{border:none;border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:600;transition:.18s}
-.ok{background:var(--accent);color:#fff}
-.ghost{background:linear-gradient(135deg,#1c1875,#33ea9e);color:#fff}
-.warn{background:#ef4444;color:#fff}
-.download-btn{background:linear-gradient(135deg,#4F46E5,#9333EA);color:#fff}
-main{display:grid;grid-template-columns:360px 1fr;gap:20px}
-canvas{width:100%;max-width:595px;border-radius:10px;background:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.06)}
-.price{font-weight:600;color:var(--accent);font-size:16px;margin-top:6px}
-#batchList{max-height:260px;overflow:auto;display:none;margin-top:8px}
-.batch-row{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);margin-bottom:6px;background:rgba(0,0,0,0.01)}
-.small{font-size:13px;color:var(--muted)}
-@media print{.no-print{display:none}}
-</style>
 </head>
 <body>
 <div class="wrap">
-<header class="no-print">
-<h1>🖨️ Kolase Foto — Final</h1>
-<button id="toggleDark" class="ghost">🌙 Mode Gelap</button>
-</header>
+  <div class="header-row no-print">
+    <h1>🖨️ KOLASE FOTO OTOMATIS SEDULUR</h1>
+    <div class="header-controls">
+      <span class="muted-label">Mode Gelap</span>
+      <div id="darkSwitch" class="switch" title="Toggle Mode Gelap (UI saja)">
+        <div class="knob"></div>
+      </div>
+    </div>
+  </div>
 
-<main>
-<section class="card no-print">
-<div class="controls">
+  <main>
+    <!-- Panel kontrol -->
+    <section class="card no-print">
+      <div class="controls">
+        <label>Pilih Mode Harga</label>
+        <select id="modeSelect">
+          <option value="normal">Mode Laprak</option>
+          <option value="perfoto">Mode CETAK FOTO</option>
+        </select>
 
-<!-- === FITUR BARU: PILIH MODE HARGA === -->
-<label>Pilih Mode Harga</label>
-<select id="modeSelect">
-  <option value="normal">Mode Normal</option>
-  <option value="perfoto">Mode Per Foto</option>
-</select>
+        <div id="hargaPerFotoBox" style="display:none;">
+          <label>Harga per Foto (Rp)</label>
+          <input id="hargaPerFoto" type="number" value="1000" min="100" step="100">
+        </div>
 
-<!-- 🔹 FITUR TAMBAHAN: INPUT HARGA PER FOTO -->
-<div id="hargaPerFotoBox" style="display:none;">
-  <label>Harga per Foto (Rp)</label>
-  <input id="hargaPerFoto" type="number" value="1000" min="500" step="100">
+        <label>Upload Foto (pilih banyak)</label>
+        <input id="upload" type="file" accept="image/*" multiple>
+
+        <label>Pilih Ukuran Kotak (cm)</label>
+        <select id="sizeSelect">
+          <option value="2x3">2 x 3</option>
+          <option value="3x4">3 x 4</option>
+          <option value="4x6">4 x 6</option>
+          <option value="5x5">5 x 5</option>
+          <option value="6x9">6 x 9</option>
+          <option value="10x15">10 x 15 (4R)</option>
+          <option value="custom">Custom...</option>
+        </select>
+
+        <div id="customSize" style="display:none;gap:8px;align-items:center;">
+          <input id="customW" type="number" placeholder="Lebar (cm)" style="width:110px">
+          <input id="customH" type="number" placeholder="Tinggi (cm)" style="width:110px">
+        </div>
+
+        <label>Margin (mm)</label>
+        <input id="marginInputMm" type="number" value="5" min="0" step="0.1">
+
+        <label>Gap antar foto (px)</label>
+        <input id="gap" type="number" value="20">
+
+        <label>Nama User / Admin</label>
+        <input id="userName" type="text" value="SEDULUR FOTOCOPY" placeholder="Masukkan nama pengguna">
+        <div class="price" id="priceDisplay">Harga: Rp 0</div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <button id="previewBtn" class="ok">👁️ Preview Cepat</button>
+          <button id="generateBtn" class="ghost">📄 Buat Kolase</button>
+          <button id="downloadPdf" class="download-btn">💾 CETAK HASIL/DOWNLOAD</button>
+          <button id="reset" class="warn">🔁 Reset</button>
+        </div>
+
+        <div id="batchList" class="small"></div>
+        <div class="footer-note">Footer (Nama & Harga) hanya ada pada <strong>mode normal</strong> — disisakan area agar tidak tertimpa foto.</div>
+      </div>
+    </section>
+
+    <!-- Area kanvas preview -->
+    <section class="card">
+      <div class="canvas-wrap">
+        <canvas id="canvas" width="1240" height="1754"></canvas>
+        <div class="page-nav no-print" id="pageNav" style="display:none">
+          <button id="prevPage">⬅️ Sebelumnya</button>
+          <div id="pageIndicator">Halaman 1 / 1</div>
+          <button id="nextPage">Berikutnya ➡️</button>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>
 
-<label>Upload Foto (pilih banyak)</label>
-<input id="upload" type="file" accept="image/*" multiple>
-
-<label>Pilih Ukuran Kotak (cm)</label>
-<select id="sizeSelect">
-<option value="2x3">2 x 3</option>
-<option value="3x4">3 x 4</option>
-<option value="4x6">4 x 6</option>
-<option value="5x5">5 x 5</option>
-<option value="6x9">6 x 9</option>
-<option value="10x15">10 x 15 (4R)</option>
-<option value="custom">Custom...</option>
-</select>
-
-<div id="customSize" style="display:none;gap:8px;align-items:center;">
-<input id="customW" type="number" placeholder="Lebar (cm)" style="width:110px">
-<input id="customH" type="number" placeholder="Tinggi (cm)" style="width:110px">
-</div>
-
-<label>Margin (px)</label>
-<input id="margin" type="number" value="70">
-<label>Gap antar foto (px)</label>
-<input id="gap" type="number" value="20">
-<label>Nama User</label>
-<input id="userName" type="text" placeholder="Masukkan nama pengguna">
-<div class="price" id="priceDisplay">Harga: Rp 0</div>
-
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-<button id="previewBtn" class="ok">👁️ Preview Cepat</button>
-<button id="generateBtn" class="ghost">📄 Buat Kolase</button>
-<button id="downloadPdf" class="download-btn">💾 Download PDF</button>
-<button id="reset" class="warn">🔁 Reset</button>
-</div>
-<div id="batchList" class="small"></div>
-</div>
-</section>
-
-<section class="card">
-<canvas id="canvas" width="1240" height="1754"></canvas>
-</section>
-</main>
-</div>
-
-<script>
-const upload=document.getElementById('upload');
-const canvas=document.getElementById('canvas');
-const ctx=canvas.getContext('2d');
-const sizeSelect=document.getElementById('sizeSelect');
-const customSize=document.getElementById('customSize');
-const customW=document.getElementById('customW');
-const customH=document.getElementById('customH');
-const marginInput=document.getElementById('margin');
-const gapInput=document.getElementById('gap');
-const priceDisplay=document.getElementById('priceDisplay');
-const userName=document.getElementById('userName');
-const previewBtn=document.getElementById('previewBtn');
-const generateBtn=document.getElementById('generateBtn');
-const downloadPdf=document.getElementById('downloadPdf');
-const resetBtn=document.getElementById('reset');
-const batchList=document.getElementById('batchList');
-const toggleDark=document.getElementById('toggleDark');
-const modeSelect=document.getElementById('modeSelect');
-const hargaPerFotoBox=document.getElementById('hargaPerFotoBox');
-const hargaPerFotoInput=document.getElementById('hargaPerFoto'); // 🔹 baru
-
-let batches=[];
-
-// ==== MODE DARK ====
-if(localStorage.getItem('theme')==='dark'){
-  document.body.classList.add('dark');
-  toggleDark.textContent='☀️ Mode Terang';
-}
-toggleDark.onclick=()=>{
-  document.body.classList.toggle('dark');
-  const d=document.body.classList.contains('dark');
-  localStorage.setItem('theme',d?'dark':'light');
-  toggleDark.textContent=d?'☀️ Mode Terang':'🌙 Mode Gelap';
-};
-
-// ==== TAMPILKAN INPUT HARGA PER FOTO ====
-modeSelect.addEventListener('change',()=>{
-  hargaPerFotoBox.style.display = modeSelect.value === 'perfoto' ? 'block' : 'none';
-});
-
-// ==== UKURAN ====
-sizeSelect.addEventListener('change',()=>{customSize.style.display=sizeSelect.value==='custom'?'flex':'none';});
-
-// ==== UPLOAD ====
-upload.addEventListener('change',(e)=>{
-  const files=Array.from(e.target.files||[]);
-  if(!files.length)return;
-  if(sizeSelect.value==='custom'){
-    const cw=parseFloat(customW.value), ch=parseFloat(customH.value);
-    if(!cw||!ch){batches.push({files,size:'2x3',copy:1});}
-    else{batches.push({files,size:'custom',customW:cw,customH:ch,copy:1});}
-  } else batches.push({files,size:sizeSelect.value,copy:1});
-  upload.value='';
-  refreshBatchList();
-});
-
-function refreshBatchList(){
-  batchList.innerHTML='';
-  batches.forEach((b,idx)=>{
-    const row=document.createElement('div'); row.className='batch-row';
-    const sizeText=b.size==='custom'?`${b.customW} x ${b.customH} cm`:b.size.replace('x',' x ');
-    row.innerHTML=`<div style="flex:1"><strong>Batch ${idx+1}</strong><div class="small">${b.files.length} foto — ${sizeText}</div></div>`;
-    const copies=document.createElement('input'); copies.type='number'; copies.value=b.copy||1; copies.min=1; copies.style.width='64px'; copies.addEventListener('change',()=>b.copy=parseInt(copies.value)||1);
-    const del=document.createElement('button'); del.textContent='❌'; del.className='warn'; del.style.marginLeft='8px'; del.onclick=()=>{batches.splice(idx,1);refreshBatchList();};
-    row.appendChild(copies); row.appendChild(del);
-    batchList.appendChild(row);
-  });
-  batchList.style.display=batches.length?'block':'none';
-}
-
-function loadImageWithEXIF(file){return new Promise(resolve=>{
-  const reader=new FileReader();
-  reader.onload=function(e){
-    const img=new Image();
-    EXIF.getData(file,function(){
-      const orientation=EXIF.getTag(this,'Orientation');
-      img.onload=function(){
-        const tc=document.createElement('canvas');
-        const tctx=tc.getContext('2d');
-        if(orientation>=5&&orientation<=8){tc.width=img.height;tc.height=img.width;}
-        else{tc.width=img.width;tc.height=img.height;}
-        switch(orientation){
-          case 3:tctx.rotate(Math.PI);tctx.drawImage(img,-img.width,-img.height);break;
-          case 6:tctx.rotate(0.5*Math.PI);tctx.drawImage(img,0,-img.height);break;
-          case 8:tctx.rotate(-0.5*Math.PI);tctx.drawImage(img,-img.width,0);break;
-          default:tctx.drawImage(img,0,0);
-        }
-        const fixed=new Image();
-        fixed.onload=()=>resolve(fixed);
-        fixed.src=tc.toDataURL('image/jpeg');
-      };
-      img.src=e.target.result;
-    });
-  };
-  reader.readAsDataURL(file);
-});}
-
-// ==== RENDER KOLASE ====
-async function renderCollage(isPreview=true){
-  if(!batches.length){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
-    priceDisplay.textContent='Harga: Rp 0';
-    return;
-  }
-
-  const fullW=2480, fullH=3508;
-  const scale=isPreview?0.5:1;
-  canvas.width=Math.round(fullW*scale);
-  canvas.height=Math.round(fullH*scale);
-  ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  const margin=Math.max(0,parseInt(marginInput.value)||20)*scale;
-  const gap=Math.max(0,parseInt(gapInput.value)||10)*scale;
-  const pxPerCm=118*scale;
-
-  let x=margin, y=margin, rowMaxH=0, maxX=0, maxY=0;
-  let totalFoto = 0;
-
-  for(const batch of batches){
-    let wcm,hcm;
-    if(batch.size==='custom'){wcm=batch.customW;hcm=batch.customH;}
-    else{[wcm,hcm]=batch.size.split('x').map(Number);}
-    const boxW=wcm*pxPerCm; const boxH=hcm*pxPerCm;
-
-    for(const file of batch.files){
-      totalFoto++;
-      let img=await loadImageWithEXIF(file);
-      if(img.width>img.height){
-        const t=document.createElement('canvas'); t.width=img.height;t.height=img.width;
-        const tx=t.getContext('2d'); tx.translate(t.width/2,t.height/2);tx.rotate(0.5*Math.PI);
-        tx.drawImage(img,-img.width/2,-img.height/2);
-        const newImg=new Image(); newImg.src=t.toDataURL(); await new Promise(r=>newImg.onload=r);
-        img=newImg;
-      }
-      const srcW=img.width,srcH=img.height;
-      const srcRatio=srcW/srcH,targetRatio=boxW/boxH;
-      let sx=0,sy=0,sW=srcW,sH=srcH;
-      if(srcRatio>targetRatio){sW=Math.round(srcH*targetRatio);sx=Math.round((srcW-sW)/2);}
-      else if(srcRatio<targetRatio){sH=Math.round(srcW/targetRatio);sy=Math.round((srcH-sH)/2);}
-      for(let c=0;c<(batch.copy||1);c++){
-        if(x+boxW>canvas.width-margin){x=margin;y+=rowMaxH+gap;rowMaxH=0;}
-        ctx.drawImage(img,sx,sy,sW,sH,x,y,boxW,boxH);
-        ctx.strokeStyle='#000';ctx.lineWidth=2;ctx.strokeRect(x,y,boxW,boxH);
-        maxX=Math.max(maxX,x+boxW);
-        maxY=Math.max(maxY,y+boxH);
-        x+=boxW+gap;rowMaxH=Math.max(rowMaxH,boxH);
-      }
-    }
-  }
-
-  // ==== HITUNG HARGA ====
-  const mode = modeSelect.value;
-  let totalHarga = 0;
-
-  if(mode === "normal"){
-    const totalUsedWidthCm=(maxX+margin)/(118*scale);
-    const totalUsedHeightCm=(maxY+margin)/(118*scale);
-    const usedAreaCm2=totalUsedWidthCm*totalUsedHeightCm;
-    const A5_AREA_CM2=14.8*21;
-    totalHarga=usedAreaCm2>A5_AREA_CM2?2000:1000;
-  } 
-  else if(mode === "perfoto"){
-    const hargaPerFoto = parseInt(hargaPerFotoInput.value) || 1000;
-    totalHarga = totalFoto * hargaPerFoto;
-  }
-
-  const fontSize=Math.max(12,Math.round(36*scale));
-  ctx.font=`${fontSize}px Poppins`; ctx.fillStyle='#333';
-  ctx.fillText(`Nama: ${userName.value||"-"}`,100*scale,canvas.height-120*scale);
-  ctx.fillText(`Harga: Rp ${totalHarga.toLocaleString()}`,100*scale,canvas.height-60*scale);
-  priceDisplay.textContent=`Harga: Rp ${totalHarga.toLocaleString()}`;
-  return totalHarga;
-}
-
-// ==== TOMBOL ====
-previewBtn.onclick=async()=>{
-  previewBtn.disabled=true;
-  previewBtn.textContent='⏳ Rendering...';
-  await renderCollage(true);
-  previewBtn.textContent='👁️ Preview Cepat';
-  previewBtn.disabled=false;
-};
-
-generateBtn.onclick=async()=>{
-  generateBtn.disabled=true;
-  generateBtn.textContent='⏳ Membuat...';
-  await renderCollage(false);
-  generateBtn.textContent='📄 Buat Kolase';
-  generateBtn.disabled=false;
-};
-
-downloadPdf.onclick=async()=>{
-  if(!batches.length)return;
-  downloadPdf.disabled=true;downloadPdf.textContent='⏳ Menyiapkan...';
-  await renderCollage(false);
-  const { jsPDF }=window.jspdf;
-  const pdf=new jsPDF('p','pt','a4');
-  pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,595,842);
-  const namaFile=(userName.value||'hasil_kolase')+'.pdf';
-  pdf.save(namaFile);
-  const pdfBlob=pdf.output('bloburl');
-  window.open(pdfBlob,'_blank');
-  downloadPdf.disabled=false;downloadPdf.textContent='💾 Download PDF';
-};
-
-resetBtn.onclick=()=>{
-  batches=[];refreshBatchList();
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
-  priceDisplay.textContent='Harga: Rp 0';
-  upload.value='';userName.value='';
-};
-ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
-</script>
+<script src="script.js"></script>
 </body>
 </html>
