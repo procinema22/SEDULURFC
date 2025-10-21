@@ -99,3 +99,185 @@ button:focus { outline: none; }
 
 /* print: hide controls */
 @media print{.no-print{display:none}}
+
+#downloadBtn {
+  background: #3498db;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  margin-top: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+#downloadBtn:hover:not(:disabled) {
+  background: #2c82c9;
+}
+#downloadBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* 🔹 QR Saweria */
+.qr-saweria {
+  text-align: center;
+  margin-top: 10px;
+  padding: 10px;
+  transition: all 0.3s ease;
+}
+
+.qr-saweria p {
+  font-size: 14px;
+  color: #222;
+  margin-bottom: 5px;
+}
+
+.qr-saweria img {
+  width: 120px;
+  height: 120px;
+  border-radius: 10px;
+  border: 2px solid #ccc;
+}
+
+/* 🌙 Mode Gelap (body.dark sudah aktif di script.js) */
+body.dark .qr-saweria p {
+  color: #eee;
+}
+
+body.dark .qr-saweria img {
+  border-color: #666;
+  filter: brightness(0.9);
+}
+/* 🔹 Area QR Saweria */
+.qr-saweria {
+  text-align: center;
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.qr-saweria p {
+  font-size: 14px;
+  color: #222;
+  margin-bottom: 5px;
+}
+
+.qr-saweria img {
+  width: 120px;
+  height: 120px;
+  border-radius: 10px;
+  border: 2px solid #ccc;
+}
+
+/* 🌙 Mode Gelap */
+body.dark .qr-saweria p {
+  color: #eee;
+}
+
+body.dark .qr-saweria img {
+  border-color: #666;
+  filter: brightness(0.9);
+}
+
+/* 🔸 Instagram link */
+.social {
+  margin-top: 8px;
+}
+
+.social a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #d6249f;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.social a img {
+  width: 18px;
+  height: 18px;
+  filter: drop-shadow(0 0 1px rgba(0,0,0,0.2));
+  transition: transform 0.2s;
+}
+
+.social a:hover img {
+  transform: scale(1.1);
+}
+
+body.dark .social a {
+  color: #ff79c6;
+}
+/* 🔹 Pop-Up Instagram */
+.popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.popup-content {
+  background: #fff;
+  color: #333;
+  padding: 20px 30px;
+  border-radius: 16px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+  transform: scale(0.8);
+  animation: popScale 0.3s ease forwards;
+}
+
+/* 🌙 mode gelap */
+body.dark .popup-content {
+  background: #222;
+  color: #eee;
+}
+
+/* Animasi */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popScale {
+  from { transform: scale(0.8); }
+  to { transform: scale(1); }
+}
+/* 🔹 Popup Universal */
+.popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.popup-content {
+  background: #fff;
+  color: #222;
+  padding: 25px 35px;
+  border-radius: 18px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+  text-align: center;
+  transform: scale(0.8);
+  animation: popIn 0.3s ease forwards;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* 🌙 Mode Gelap */
+body.dark .popup-content {
+  background: #1e1e1e;
+  color: #eee;
+}
+
+/* Animasi */
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

@@ -344,6 +344,7 @@ generateBtn.onclick = async () => {
 prevPageBtn.onclick = () => showPageAtIndex(currentPageIndex-1);
 nextPageBtn.onclick = () => showPageAtIndex(currentPageIndex+1);
 
+
 /* Download PDF */
 downloadPdf.onclick = async () => {
   if(!batches.length) return alert('Belum ada foto/batch.');
@@ -411,6 +412,51 @@ async function updatePricePreview(){
     priceDisplay.textContent=`Harga: Rp ${previewPrice.toLocaleString()} (preview)`;
   }catch(err){ console.error(err); priceDisplay.textContent='Harga: Rp 0 (preview error)'; }
 }
+// 🔹 Pop-Up Instagram saat link diklik
+const igLinkPopup = document.querySelector('.social a');
+const popup = document.getElementById('popupInstagram');
+
+if (igLinkPopup && popup) {
+  igLinkPopup.addEventListener('click', (e) => {
+    e.preventDefault(); // cegah buka langsung
+    popup.style.display = 'flex';
+    setTimeout(() => {
+      popup.style.display = 'none';
+      window.open(igLinkPopup.href, '_blank'); // buka IG di tab baru
+    }, 2000); // tampil 2 detik
+  });
+}
+// 🔹 Popup universal untuk semua link eksternal
+const popupLink = document.getElementById('popupLink');
+
+// Fungsi tampil popup lalu buka link
+function showPopupAndRedirect(url) {
+  if (!popupLink) return;
+  popupLink.style.display = 'flex';
+  setTimeout(() => {
+    popupLink.style.display = 'none';
+    window.open(url, '_blank');
+  }, 2000); // tampil 2 detik
+}
+
+// Contoh: link GitHub Pages & Instagram
+const githubLink = document.querySelector('.github-link');
+const igLink = document.querySelector('.social a');
+
+if (githubLink) {
+  githubLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    showPopupAndRedirect(githubLink.href);
+  });
+}
+
+if (igLink) {
+  igLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    showPopupAndRedirect(igLink.href);
+  });
+}
+
 
 /* Inisialisasi */
 ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);

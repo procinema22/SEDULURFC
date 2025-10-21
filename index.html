@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Kolase Foto — Final (Cover, A4 Portrait)</title>
+<title>CETAK FOTO ANTI RIBET</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -13,9 +13,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+  <!-- 🔹 Pop-Up Universal -->
+<div id="popupLink" class="popup">
+  <div class="popup-content">
+    <p>Menuju halaman resmi 💫</p>
+    <p style="font-size:13px;">Silakan tunggu sebentar...</p>
+  </div>
+</div>
+
 <div class="wrap">
   <div class="header-row no-print">
-    <h1>SEDULUR FOTOCOPY DIGITAL & PRINTING <br>FIMIPA UNNES</h1>
+    <h1>CETAK FOTO ANTI RIBET</h1>
 
     <div class="header-controls">
       <span class="muted-label">Mode Gelap</span>
@@ -82,15 +90,40 @@
         <div class="price" id="priceDisplay">Harga: Rp 0</div>
 
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+       
           <button id="previewBtn" class="ok">👁️ Preview Cepat</button>
           <button id="generateBtn" class="ghost">📄 Buat Kolase</button>
           <button id="downloadPdf" class="download-btn">💾 Buka PDF di Tab Baru</button>
           <button id="reset" class="warn">🔁 Reset</button>
+         
+
         </div>
 
-        <div id="batchList" class="small"></div>
-        <div class="footer-note">INGAT GUNAKAN WEB INI DENGAN BIJAK <strong>JANGAN MERUBAH DAN MENGANGAP INI BUATAN ANDA</strong> — SALAM MANISSS </div>
-      </div>
+        <div class="footer-note">
+         JANGAN LUPA BANTU SUPPORTNYA DENGA MEMBERI SAWER
+        </div>
+        
+        <!-- 🔹 QR Saweria -->
+        <div class="qr-saweria" style="text-align:center;margin-top:10px;">
+          <p style="font-size:14px;">Dukung saya di Saweria 💚</p>
+          <img src="qr/download.png" alt="QR Saweria" style="width:120px;height:120px;border-radius:10px;">
+          <!-- 🔸 Instagram -->
+  <div class="social">
+    <a href="https://www.instagram.com/ahmad.oktha/" target="_blank">
+      <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/instagram.svg" alt="Instagram">
+      <span>@ahmadokta</span>
+    </a>
+    <!-- 🔹 Pop-Up Instagram -->
+<div id="popupInstagram" class="popup">
+  <div class="popup-content">
+    <p>Terima kasih sudah mendukung 💚</p>
+    <p style="font-size:13px;">Menuju Instagram @ahmadokta...</p>
+  </div>
+</div>
+
+  </div>
+        </div>
+        
     </section>
 
     <!-- Area kanvas preview -->
