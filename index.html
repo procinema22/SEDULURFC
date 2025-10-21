@@ -16,7 +16,7 @@
 <div class="wrap">
   <div class="header-row no-print">
     <h1>SEDULUR FOTOCOPY DIGITAL & PRINTING <br>FIMIPA UNNES</h1>
- 
+
     <div class="header-controls">
       <span class="muted-label">Mode Gelap</span>
       <div id="darkSwitch" class="switch" title="Toggle Mode Gelap (UI saja)">
@@ -31,7 +31,7 @@
       <div class="controls">
         <label>Pilih Mode Harga</label>
         <select id="modeSelect">
-          <option value="normal">Mode LAPRAK</option>
+          <option value="normal">Mode LAPRAK OTOMATIS</option>
           <option value="perfoto">Mode PAS FOTO</option>
         </select>
 
@@ -67,6 +67,18 @@
 
         <label>Nama User / Admin</label>
         <input id="userName" type="text" value="" placeholder="Masukkan nama pengguna">
+
+        <!-- 🔹 Mode LAPRAK -->
+        <label><input type="checkbox" id="laprakMode"> Aktifkan Mode LAPRAK MANUAL</label>
+
+        <div id="laprakControls" style="display:none;margin-top:8px;">
+          <label>Nama Laprak</label>
+          <input type="text" id="laprakName" placeholder="Nama Pemilik">
+
+          <label>Harga Laprak (Rp)</label>
+          <input type="number" id="laprakPrice" value="2000" step="500" min="0">
+        </div>
+
         <div class="price" id="priceDisplay">Harga: Rp 0</div>
 
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
