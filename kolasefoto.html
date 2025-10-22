@@ -25,6 +25,8 @@
     </div>
   </div>
 
+
+
   <main>
     <!-- Panel kontrol -->
     <section class="card no-print">
@@ -54,16 +56,30 @@
           <option value="custom">Custom...</option>
         </select>
 
+        <label><input type="checkbox" id="manualHarga"> Gunakan Harga Manual (Rp 500)</label>
+
+        
+
+
         <div id="customSize" style="display:none;gap:8px;align-items:center;">
           <input id="customW" type="number" placeholder="Lebar (cm)" style="width:110px">
           <input id="customH" type="number" placeholder="Tinggi (cm)" style="width:110px">
         </div>
+
+        <label><input type="checkbox" id="manualHarga"> Gunakan Harga Manual</label>
+
+      <div id="manualHargaBox" style="display:none;">
+      <label>Harga Manual (Rp)</label>
+       <input id="manualHargaInput" type="number" value="500" min="0" step="100">
+  </div>
+
 
         <label>Margin (mm)</label>
         <input id="marginInputMm" type="number" value="5" min="0" step="0.1">
 
         <label>Gap antar foto (px)</label>
         <input id="gap" type="number" value="20">
+      
 
         <label>Nama User / Admin</label>
         <input id="userName" type="text" value="" placeholder="Masukkan nama pengguna">
@@ -90,6 +106,7 @@
          
 
         </div>
+        <div id="batchList"></div>
 
         <div class="footer-note">
          JANGAN LUPA BANTU SUPPORTNYA DENGA MEMBERI SAWER

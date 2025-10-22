@@ -289,10 +289,22 @@ async function renderAllPagesToCanvases() {
 
 /* Hitung harga */
 function hitungHargaDariUsedMm(usedMmPerPage){
-  let totalHarga=0; const halfPageMm=297/2;
-  usedMmPerPage.forEach(used => { totalHarga += used<=halfPageMm ? 1000 : 2000; });
+  const manualHarga = document.getElementById('manualHarga');
+  let totalHarga = 0;
+  const halfPageMm = 297 / 2;
+
+  // Jika tombol harga manual aktif, semua harga pakai Rp 500
+  if (manualHarga && manualHarga.checked) {
+    return 500; // atau nilai lain sesuai keinginanmu
+  }
+
+  usedMmPerPage.forEach(used => {
+    totalHarga += used <= halfPageMm ? 1000 : 2000;
+  });
+
   return totalHarga;
 }
+
 
 /* Preview navigation */
 function showPageAtIndex(i){
@@ -306,6 +318,7 @@ function showPageAtIndex(i){
   pageIndicator.textContent=`Halaman ${currentPageIndex+1} / ${pagesCache.length}`;
   prevPageBtn.disabled=currentPageIndex===0;
   nextPageBtn.disabled=currentPageIndex===pagesCache.length-1;
+  
 }
 
 /* Tombol utama */
@@ -345,63 +358,79 @@ prevPageBtn.onclick = () => showPageAtIndex(currentPageIndex-1);
 nextPageBtn.onclick = () => showPageAtIndex(currentPageIndex+1);
 
 
-/* Download PDF */
 downloadPdf.onclick = async () => {
-  if(!batches.length) return alert('Belum ada foto/batch.');
-  downloadPdf.disabled=true; downloadPdf.textContent='⏳ Menyiapkan PDF...';
-  try{
-    const { pages, usedMmPerPage, totalPhotosCount } = await renderAllPagesToCanvases();
+  if (!batches.length) return alert('Belum ada foto/batch.');
+  if (!userName.value.trim()) {
+    alert('Nama harus diisi terlebih dahulu sebelum membuat PDF!');
+    return;
+  }
 
-    // 🔹 Kalkulasi harga
-    let totalHarga;
-    if (laprakMode.checked) {
-      totalHarga = parseInt(laprakPrice.value) || 0;
-    } else if (modeSelect.value === 'normal') {
-      totalHarga = hitungHargaDariUsedMm(usedMmPerPage);
-    } else {
-      totalHarga = totalPhotosCount * (parseInt(hargaPerFotoInput.value) || 1000);
-    }
+  // 🔹 Pastikan kolase sudah pernah dibuat
+  if (!pagesCache.length) {
+    alert('Silakan klik "📄 Buat Kolase" terlebih dahulu sebelum membuka PDF.');
+    return;
+  }
 
-    // 🔹 Footer khusus Mode Laprak
-    if (laprakMode.checked) {
-      const lastCanvas = pages[pages.length - 1];
-      const lastCtx = lastCanvas.getContext('2d');
-      const fullW = lastCanvas.width, fullH = lastCanvas.height;
-      const pxPerCm = 118, footerHeightMm = 20, footerPx = (footerHeightMm / 10) * pxPerCm;
-      lastCtx.font = `48px Poppins`;
-      lastCtx.fillStyle = '#333';
-      const footerX = 100;
-      const footerYName = fullH - footerPx + 30, footerYPrice = footerYName + 60;
-      lastCtx.fillText(`Nama: ${laprakName.value || '-'}`, footerX, footerYName);
-      lastCtx.fillText(`Harga: Rp ${(parseInt(laprakPrice.value) || 0).toLocaleString()}`, footerX, footerYPrice);
-    } else if (modeSelect.value === 'normal') {
-      const lastCanvas = pages[pages.length - 1];
-      const lastCtx = lastCanvas.getContext('2d');
-      const fullW = lastCanvas.width, fullH = lastCanvas.height;
-      const pxPerCm = 118, footerHeightMm = 20, footerPx = (footerHeightMm / 10) * pxPerCm, footerFontSize = 48;
-      lastCtx.font = `${footerFontSize}px Poppins`; lastCtx.fillStyle = '#333';
-      const footerX = (Math.max(20, (parseFloat(marginInputMm.value) || 5) / 10 * pxPerCm)) + 20;
-      const footerYName = fullH - footerPx + 30, footerYPrice = footerYName + footerFontSize + 6;
-      lastCtx.fillText(`Nama: ${userName.value || '-'}`, footerX, footerYName);
-      lastCtx.fillText(`Harga: Rp ${totalHarga.toLocaleString()}`, footerX, footerYPrice);
-    }
+  downloadPdf.disabled = true;
+  downloadPdf.textContent = '⏳ Menyiapkan PDF...';
 
+  try {
+    // 🔹 Gunakan hasil render sebelumnya
+    const pages = pagesCache;
+
+    // Kita tidak render ulang atau kompres lagi di sini
+    // Ambil kembali harga dari label
+    let totalHarga = priceDisplay.textContent.replace(/[^\d]/g, '');
+    totalHarga = parseInt(totalHarga) || 0;
+
+    // Tambahkan footer nama & harga di halaman terakhir
+    const lastCanvas = pages[pages.length - 1];
+    const lastCtx = lastCanvas.getContext('2d');
+    const fullW = lastCanvas.width, fullH = lastCanvas.height;
+    const pxPerCm = 118, footerHeightMm = 20, footerPx = (footerHeightMm / 10) * pxPerCm;
+    lastCtx.font = `48px Poppins`;
+    lastCtx.fillStyle = '#333';
+    const footerX = 100;
+    const footerYName = fullH - footerPx + 30, footerYPrice = footerYName + 60;
+    lastCtx.fillText(`Nama: ${userName.value || '-'}`, footerX, footerYName);
+    lastCtx.fillText(`Harga: Rp ${totalHarga.toLocaleString()}`, footerX, footerYPrice);
+
+    // 🔹 Buat PDF langsung dari pagesCache
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('p','pt','a4');
-    pages.forEach((pg,i)=>{ if(i>0) pdf.addPage(); pdf.addImage(pg.toDataURL('image/jpeg',0.92),'JPEG',0,0,595,842); });
-    const pdfBlob=pdf.output('blob'); window.open(URL.createObjectURL(pdfBlob),'_blank');
-  }catch(err){ console.error(err); alert('Gagal membuat PDF.'); }
-  finally{ downloadPdf.disabled=false; downloadPdf.textContent='💾 Buka PDF di Tab Baru'; }
+    const pdf = new jsPDF('p', 'pt', 'a4');
+    pages.forEach((pg, i) => {
+      if (i > 0) pdf.addPage();
+      pdf.addImage(pg.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 595, 842);
+    });
+    const pdfBlob = pdf.output('blob');
+    window.open(URL.createObjectURL(pdfBlob), '_blank');
+  } catch (err) {
+    console.error(err);
+    alert('Gagal membuat PDF.');
+  } finally {
+    downloadPdf.disabled = false;
+    downloadPdf.textContent = '💾 Buka PDF di Tab Baru';
+  }
 };
 
-/* Reset */
-resetBtn.onclick=()=>{ if(!confirm('Reset semua batch dan preview?')) return;
-  batches=[]; refreshBatchList(); pagesCache=[]; currentPageIndex=0;
-  ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  priceDisplay.textContent='Harga: Rp 0'; userName.value='SEDULUR FOTOCOPY';
-  pageNav.style.display='none'; pageIndicator.textContent='Halaman 0 / 0';
-  laprakMode.checked=false; laprakControls.style.display='none'; modeSelect.disabled=false;
+
+resetBtn.onclick = () => {
+  // Reset langsung tanpa pop-up konfirmasi
+  batches = [];
+  refreshBatchList();
+  pagesCache = [];
+  currentPageIndex = 0;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  priceDisplay.textContent = 'Harga: Rp 0';
+  userName.value = 'SEDULUR FOTOCOPY';
+  pageNav.style.display = 'none';
+  pageIndicator.textContent = 'Halaman 0 / 0';
+  laprakMode.checked = false;
+  laprakControls.style.display = 'none';
+  modeSelect.disabled = false;
 };
+
 
 /* Update harga */
 async function updatePricePreview(){
