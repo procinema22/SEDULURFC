@@ -15,7 +15,7 @@
 <body>
 <div class="wrap">
   <div class="header-row no-print">
-    <h1>CETAK FOTO ANTI RIBET yaa</h1>
+    <h1>CETAK FOTO ANTI RIBET </h1>
 
     <div class="header-controls">
       <span class="muted-label">Mode Gelap</span>
@@ -56,23 +56,20 @@
           <option value="custom">Custom...</option>
         </select>
 
-        <label><input type="checkbox" id="manualHarga"> Gunakan Harga Manual (Rp 500)</label>
-
-        
-
-
         <div id="customSize" style="display:none;gap:8px;align-items:center;">
           <input id="customW" type="number" placeholder="Lebar (cm)" style="width:110px">
           <input id="customH" type="number" placeholder="Tinggi (cm)" style="width:110px">
         </div>
 
-        <label><input type="checkbox" id="manualHarga"> Gunakan Harga Manual</label>
+        <!-- 🔹 Harga manual -->
+        <label><input type="checkbox" id="manualHargaCheckbox"> Gunakan Harga Manual</label>
+        <div id="manualHargaBox" style="display:none;">
+          <label>Harga Manual (Rp)</label>
+          <input id="manualHargaInput" type="number" value="500" min="0" step="100">
+        </div>
 
-      <div id="manualHargaBox" style="display:none;">
-      <label>Harga Manual (Rp)</label>
-       <input id="manualHargaInput" type="number" value="500" min="0" step="100">
-  </div>
-
+        <!-- 🔹 Sembunyikan info -->
+        <label><input type="checkbox" id="hideInfo"> Sembunyikan Nama & Harga di PDF</label>
 
         <label>Margin (mm)</label>
         <input id="marginInputMm" type="number" value="5" min="0" step="0.1">
@@ -109,13 +106,14 @@
         <div id="batchList"></div>
 
         <div class="footer-note">
-         JANGAN LUPA BANTU SUPPORTNYA DENGA MEMBERI SAWER
-        </div>
+        
+        
         
         <!-- 🔹 QR Saweria -->
         <div class="qr-saweria" style="text-align:center;margin-top:10px;">
-          <p style="font-size:14px;">Dukung saya di Saweria 💚</p>
+          <p style="font-size:14px;"> TERIMAKASIH TELAH MENGUNAKAN WEB INI DENGAN BIJAK DAN JANGAN LUPA DUKUNG WEB INI AGAR BISA BERKEMBANG </p>
           <img src="qr/download.png" alt="QR Saweria" style="width:120px;height:120px;border-radius:10px;">
+        </div>
           <!-- 🔸 Instagram -->
   <div class="social">
     <a href="https://www.instagram.com/ahmad.oktha/" target="_blank">

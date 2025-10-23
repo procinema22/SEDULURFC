@@ -41,6 +41,12 @@ const laprakControls = document.getElementById('laprakControls');
 const laprakName = document.getElementById('laprakName');
 const laprakPrice = document.getElementById('laprakPrice');
 
+// 🔹 Elemen tambahan (manual harga & hide info)
+const manualHargaCheckbox = document.getElementById('manualHargaCheckbox');
+const manualHargaBox = document.getElementById('manualHargaBox');
+const manualHargaInput = document.getElementById('manualHargaInput');
+const hideInfo = document.getElementById('hideInfo');
+
 let batches = [];
 let pagesCache = [];
 let currentPageIndex = 0;
@@ -79,6 +85,15 @@ laprakMode.onchange = () => {
     modeSelect.disabled = false;
   }
 };
+
+// 🔹 Toggle harga manual UI
+if (manualHargaCheckbox) {
+  manualHargaCheckbox.onchange = () => {
+    manualHargaBox.style.display = manualHargaCheckbox.checked ? 'block' : 'none';
+    // update preview price saat berubah
+    updatePricePreview();
+  };
+}
 
 /* Upload handler */
 upload.onchange = async e => {
@@ -289,13 +304,14 @@ async function renderAllPagesToCanvases() {
 
 /* Hitung harga */
 function hitungHargaDariUsedMm(usedMmPerPage){
-  const manualHarga = document.getElementById('manualHarga');
+  // manualHargaCheckbox kini dikendalikan dari UI
   let totalHarga = 0;
   const halfPageMm = 297 / 2;
 
-  // Jika tombol harga manual aktif, semua harga pakai Rp 500
-  if (manualHarga && manualHarga.checked) {
-    return 500; // atau nilai lain sesuai keinginanmu
+  // Jika checkbox harga manual dicentang, gunakan nilai dari input manualHargaInput untuk tiap-antrian
+  if (manualHargaCheckbox && manualHargaCheckbox.checked) {
+    // Jika user memasukkan angka, gunakan itu sebagai total (lebih konsisten dengan permintaan)
+    return parseInt(manualHargaInput.value) || 0;
   }
 
   usedMmPerPage.forEach(used => {
@@ -392,8 +408,12 @@ downloadPdf.onclick = async () => {
     lastCtx.fillStyle = '#333';
     const footerX = 100;
     const footerYName = fullH - footerPx + 30, footerYPrice = footerYName + 60;
-    lastCtx.fillText(`Nama: ${userName.value || '-'}`, footerX, footerYName);
-    lastCtx.fillText(`Harga: Rp ${totalHarga.toLocaleString()}`, footerX, footerYPrice);
+
+    // Jika pengguna memilih menyembunyikan info, jangan gambar footer
+    if (!hideInfo || !hideInfo.checked) {
+      lastCtx.fillText(`Nama: ${userName.value || '-'}`, footerX, footerYName);
+      lastCtx.fillText(`Harga: Rp ${totalHarga.toLocaleString()}`, footerX, footerYPrice);
+    }
 
     // 🔹 Buat PDF langsung dari pagesCache
     const { jsPDF } = window.jspdf;
@@ -429,6 +449,9 @@ resetBtn.onclick = () => {
   laprakMode.checked = false;
   laprakControls.style.display = 'none';
   modeSelect.disabled = false;
+  // reset tambahan UI baru
+  if (manualHargaCheckbox) { manualHargaCheckbox.checked = false; manualHargaBox.style.display = 'none'; }
+  if (hideInfo) hideInfo.checked = false;
 };
 
 
