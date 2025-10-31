@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>CETAK FOTO ANTI RIBET</title>
+<title>CETAK FOTO ANTI RIBET - v2</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -15,8 +15,7 @@
 <body>
 <div class="wrap">
   <div class="header-row no-print">
-    <h1>CETAK FOTO ANTI RIBET </h1>
-
+    <h1>CETAK FOTO ANTI RIBET — (beta)</h1>
     <div class="header-controls">
       <span class="muted-label">Mode Gelap</span>
       <div id="darkSwitch" class="switch" title="Toggle Mode Gelap (UI saja)">
@@ -25,23 +24,26 @@
     </div>
   </div>
 
-
-
   <main>
-    <!-- Panel kontrol -->
     <section class="card no-print">
       <div class="controls">
         <label>Pilih Mode Harga</label>
         <select id="modeSelect">
           <option value="normal">Mode LAPRAK OTOMATIS</option>
           <option value="perfoto">Mode PAS FOTO</option>
+          <option value="circle">Mode LINGKARAN</option>
         </select>
+
+        <div id="circleControls" style="display:none;">
+          <label>Diameter Lingkaran (cm)</label>
+          <input id="circleDiameter" type="number" value="4" step="0.1" min="1">
+          <p style="font-size:12px;color:gray;">Geser foto di preview untuk menyesuaikan posisi. Gunakan scroll untuk zoom.</p>
+        </div>
 
         <div id="hargaPerFotoBox" style="display:none;">
           <label>Harga per Foto (Rp)</label>
           <input id="hargaPerFoto" type="number" value="1000" min="100" step="100">
         </div>
-        
 
         <label>Upload Foto (pilih banyak)</label>
         <input id="upload" type="file" accept="image/*" multiple>
@@ -62,18 +64,12 @@
           <input id="customH" type="number" placeholder="Tinggi (cm)" style="width:110px">
         </div>
 
-        <!-- 🔹 Harga manual -->
         <label><input type="checkbox" id="manualHargaCheckbox"> Gunakan Harga Manual</label>
         <div id="manualHargaBox" style="display:none;">
           <label>Harga Manual (Rp)</label>
           <input id="manualHargaInput" type="number" value="500" min="0" step="100">
         </div>
-        <button id="printMarginDocBtn" class="ok" style="margin-top:6px;padding:10px 12px;">
-          🖨️ Cetak Margin Dokumen
-        </button>
-        
 
-        <!-- 🔹 Sembunyikan info -->
         <label><input type="checkbox" id="hideInfo"> Sembunyikan Nama & Harga di PDF</label>
 
         <label>Margin (mm)</label>
@@ -81,26 +77,20 @@
 
         <label>Gap antar foto (px)</label>
         <input id="gap" type="number" value="20">
-      
 
-        <label>Nama User / Admin</label>
+        <label>Nama Pelangan</label>
         <input id="userName" type="text" value="" placeholder="Masukkan nama pengguna">
 
-        <!-- 🔹 Mode LAPRAK -->
         <label><input type="checkbox" id="laprakMode"> Aktifkan Mode LAPRAK MANUAL</label>
-
         <div id="laprakControls" style="display:none;margin-top:8px;">
           <label>Nama Laprak</label>
           <input type="text" id="laprakName" placeholder="Nama Pemilik">
-
           <label>Harga Laprak (Rp)</label>
           <input type="number" id="laprakPrice" value="2000" step="500" min="0">
         </div>
 
         <div class="price" id="priceDisplay">Harga: Rp 0</div>
-
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-       
           <button id="previewBtn" class="ok">👁️ Preview Cepat</button>
           <button id="generateBtn" class="ghost">📄 Buat Kolase</button>
           <button id="downloadPdf" class="download-btn">💾 Buka PDF di Tab Baru</button>
@@ -111,34 +101,14 @@
         <div id="batchList"></div>
 
         <div class="footer-note">
-        
-        
-        
-        <!-- 🔹 QR Saweria -->
-        <div class="qr-saweria" style="text-align:center;margin-top:10px;">
-          <p style="font-size:14px;"> TERIMAKASIH TELAH MENGUNAKAN WEB INI DENGAN BIJAK DAN JANGAN LUPA DUKUNG WEB INI AGAR BISA BERKEMBANG </p>
-          <img src="qr/download.png" alt="QR Saweria" style="width:120px;height:120px;border-radius:10px;">
+          <div class="qr-saweria">
+            <p>TERIMAKASIH TELAH MENGUNAKAN WEB INI DENGAN BIJAK</p>
+            <img src="qr/download.png" alt="QR Saweria">
+          </div>
         </div>
-          <!-- 🔸 Instagram -->
-  <div class="social">
-    <a href="https://www.instagram.com/ahmad.oktha/" target="_blank">
-      <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/instagram.svg" alt="Instagram">
-      <span>@ahmadokta</span>
-    </a>
-    <!-- 🔹 Pop-Up Instagram -->
-<div id="popupInstagram" class="popup">
-  <div class="popup-content">
-    <p>Terima kasih sudah mendukung 💚</p>
-    <p style="font-size:13px;">Menuju Instagram @ahmadokta...</p>
-  </div>
-</div>
-
-  </div>
-        </div>
-        
+      </div>
     </section>
 
-    <!-- Area kanvas preview -->
     <section class="card">
       <div class="canvas-wrap">
         <canvas id="canvas" width="1240" height="1754"></canvas>
