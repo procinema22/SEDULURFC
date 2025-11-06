@@ -72,9 +72,9 @@
        width: 68px;
        height: 68px;
        border-radius: 50%;
-       border: 6px solid rgba(255,255,255,0.85);
-       border-top-color: rgba(33,150,243,1);
-       animation: spin_kolase 0.8s linear infinite;
+       border: 6px solid rgba(83, 83, 83, 0.85);
+       border-top-color: rgb(243, 33, 208);
+       animation: spin_kolase 0.2s linear infinite;
        box-shadow: 0 6px 18px rgba(0,0,0,0.4);
      }
      @keyframes spin_kolase { to { transform: rotate(360deg); } }
