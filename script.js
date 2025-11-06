@@ -383,14 +383,12 @@
      const fullW = 2480, fullH = 3508;
      const pxPerCm = PX_PER_CM;
      const marginPx = (Math.max(0, parseFloat(marginInputMm.value) || 1) / 10) * pxPerCm;
-     const pages = []; const usedHeightPerPagePx = [];
-     const usedHeightPerPagePxForCircle = []; // per-page used height considering only circle placements
+     const pages = []; const usedHeightPerPagePx = []; // per-page used height considering only circle placements
      for (let pi = 0; pi < (placementsByPage.length || 0); pi++) {
        const pagePlacements = placementsByPage[pi] || [];
        const pageCanvas = document.createElement('canvas'); pageCanvas.width = fullW; pageCanvas.height = fullH;
        const pctx = pageCanvas.getContext('2d'); pctx.fillStyle = '#fff'; pctx.fillRect(0, 0, fullW, fullH);
        let usedY = marginPx;
-       let usedYForCircle = marginPx;
        for (const pl of pagePlacements) {
          const imgHigh = await loadImageWithEXIF(pl.file, 'pdf'); if (!imgHigh) continue;
          const placementHigh = Object.assign({}, pl); placementHigh.imgObj = imgHigh;
@@ -401,14 +399,12 @@
          } else {
            drawCirclePlacement(pctx, placementHigh);
            usedY = Math.max(usedY, pl.y + pl.diameterPx);
-           usedYForCircle = Math.max(usedYForCircle, pl.y + pl.diameterPx);
          }
        }
        usedHeightPerPagePx.push(usedY);
-       usedHeightPerPagePxForCircle.push(usedYForCircle);
        pages.push(pageCanvas);
      }
-     return { pages, usedHeightPerPagePx, usedHeightPerPagePxForCircle };
+     return { pages, usedHeightPerPagePx,  };
    }
    
    /* ---------------------------
@@ -417,7 +413,7 @@
    function priceFromUsedHeightsArray(usedHeightPxArray) {
      const pxToMm = 297 / 3508;
      const halfPageMm = 297 / 2;
-     let total = 0;
+     let total = 10;
      usedHeightPxArray.forEach(px => {
        if (!px || px <= 0) return;
        const usedMm = px * pxToMm;
@@ -439,20 +435,27 @@
       unified price compute
       --------------------------- */
    async function computeTotalPriceForPreviewOrGenerate() {
-     const { pages, usedHeightPerPagePx, usedHeightPerPagePxForCircle } = await renderAllPagesToCanvases();
+     const { pages, usedHeightPerPagePx,  } = await renderAllPagesToCanvases();
      const laprakPriceTotal = laprakMode && laprakMode.checked ? priceFromUsedHeightsArray(usedHeightPerPagePx) : 0;
-     const circlePriceTotal = priceFromUsedHeightsArray(usedHeightPerPagePxForCircle);
-     const perFotoCount = countPerfotoFromBatches(batches);
-     const hargaPerFoto = parseInt(hargaPerFotoInput ? hargaPerFotoInput.value : '1000') || 1000;
-     const perfotoTotal = perFotoCount * hargaPerFoto;
-   
-     if (manualHargaCheckbox && manualHargaCheckbox.checked) {
+
+// harga universal per halaman untuk semua mode kecuali perfoto
+// dipisah dari mode perfoto
+let normalPagePrice = 0;
+if (!laprakMode || !laprakMode.checked){
+  normalPagePrice = priceFromUsedHeightsArray(usedHeightPerPagePx);
+}
+
+const perFotoCount = countPerfotoFromBatches(batches);
+const hargaPerFoto = parseInt(hargaPerFotoInput ? hargaPerFotoInput.value : '1000') || 1000;
+const perfotoTotal = perFotoCount * hargaPerFoto;
+if (manualHargaCheckbox && manualHargaCheckbox.checked) {
        // if manual override, return numeric value for compatibility (we handle both cases)
        return parseInt(manualHargaInput.value) || 0;
      }
    
-     const grandTotal = laprakPriceTotal + circlePriceTotal + perfotoTotal;
-     return { grandTotal, laprakPriceTotal, circlePriceTotal, perfotoTotal, pagesCount: pages.length, pages, usedHeightPerPagePx };
+     const grandTotal = laprakPriceTotal + normalPagePrice + perfotoTotal;
+return { grandTotal, laprakPriceTotal, normalPagePrice, perfotoTotal, pagesCount: pages.length, pages, usedHeightPerPagePx };
+
    }
    
    /* ---------------------------
@@ -461,7 +464,10 @@
    async function updatePricePreview() {
      if (!batches.length) { priceDisplay.textContent = 'Harga: Rp 0 (preview)'; return; }
      try {
-       const result = await computeTotalPriceForPreviewOrGenerate();
+       
+    await buildPlacementsForPages();
+
+const result = await computeTotalPriceForPreviewOrGenerate();
        const total = (typeof result === 'object' && result !== null)
          ? (result.grandTotal || 0)
          : (parseInt(result) || 0);
