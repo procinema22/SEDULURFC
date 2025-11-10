@@ -143,7 +143,15 @@
   
    if (sizeSelect) sizeSelect.onchange = () => { if (customSize) customSize.style.display = sizeSelect.value === 'custom' ? 'flex' : 'none'; };
    if (laprakMode) laprakMode.onchange = () => { if (laprakControls) laprakControls.style.display = laprakMode.checked ? 'block' : 'none'; if (modeSelect) modeSelect.disabled = laprakMode.checked; updatePricePreview();};
-   if (manualHargaCheckbox) manualHargaCheckbox.onchange = () => { if (manualHargaBox) manualHargaBox.style.display = manualHargaCheckbox.checked ? 'block' : 'none'; updatePricePreview(); };
+   if (manualHargaCheckbox) {
+  manualHargaCheckbox.checked = true;
+  manualHargaCheckbox.disabled = true; // tidak bisa dimatikan
+
+  if (manualHargaBox) manualHargaBox.style.display = 'block';
+
+  updatePricePreview();
+}
+
    
    /* ---------------------------
       helper file key
@@ -413,7 +421,7 @@
    function priceFromUsedHeightsArray(usedHeightPxArray) {
      const pxToMm = 297 / 3508;
      const halfPageMm = 297 / 2;
-     let total = 10;
+     let total = 0;
      usedHeightPxArray.forEach(px => {
        if (!px || px <= 0) return;
        const usedMm = px * pxToMm;
@@ -474,7 +482,7 @@ const result = await computeTotalPriceForPreviewOrGenerate();
        priceDisplay.textContent = `Harga: Rp ${total.toLocaleString()} (preview)`;
      } catch (err) {
        console.error(err);
-       priceDisplay.textContent = 'Harga: Rp 0 (preview error)';
+       priceDisplay.textContent = 'Harga: Rp 1000 (preview error)';
      }
    }
    

@@ -31,7 +31,7 @@ html,body{margin:0;padding:0;font-family:"Poppins",sans-serif;background:var(--b
 .header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 h1{font-size:20px;margin:0 }
 .card{background:var(--card);border-radius:12px;padding:-16px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
-.controls{display:flex;flex-direction:column;gap:8px}
+.controls{display:flex;flex-direction:column;gap:20px}
 label{font-size:13px;color:var(--muted)}
 input,select,button{font-family:inherit}
 input,select{padding:8px;border-radius:8px;border:1px solid #ddd;background:transparent;color:var(--text)}
@@ -40,7 +40,7 @@ button{border:none;border-radius:10px;padding:8px 12px;cursor:pointer;font-weigh
 .ghost{background:linear-gradient(135deg,#1c1875,#33ea9e);color:#fff}
 .warn{background:#ef4444;color:#fff}
 .download-btn{background:linear-gradient(135deg,#4F46E5,#9333EA);color:#fff}
-main{display:grid;grid-template-columns:360px 1fr;gap:20px}
+main{display:grid;grid-template-columns:430px 1fr;gap:20px}
 .canvas-wrap{display:flex;flex-direction:column;align-items:center;gap:8px}
 canvas{width:100%;max-width:595px;border-radius:10px;background:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.06);border:2px solid var(--border)}
 .page-nav{display:flex;gap:8px;align-items:center;margin-top:6px}
