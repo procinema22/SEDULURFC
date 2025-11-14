@@ -570,61 +570,71 @@ const result = await computeTotalPriceForPreviewOrGenerate();
    }, { passive: false });
    
    /* =========================
-      RESET TOTAL — (enhanced)
-      ========================= */
-   if (resetBtn) resetBtn.addEventListener("click", async (e) => {
-     e.preventDefault();
-   
-     // Bersihkan semua state utama
-     batches = [];
-     placementsByPage = [];
-     pagesCache = [];
-     currentPageIndex = 0;
-     selectedPlacement = null;
-   
-     // Hapus data tersimpan
-     try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
-   
-     // Bersihkan kanvas
-     ctx.clearRect(0, 0, canvas.width, canvas.height);
-     ctx.fillStyle = "#fff";
-     ctx.fillRect(0, 0, canvas.width, canvas.height);
-   
-     // Reset UI
-     if (batchList) batchList.innerHTML = "";
-     if (priceDisplay) priceDisplay.textContent = "Harga: Rp 0";
-     if (modeSelect) modeSelect.value = "normal";
-     if (circleControls) circleControls.style.display = "none";
-     if (laprakControls) laprakControls.style.display = "none";
-     if (laprakMode) laprakMode.checked = false;
-     if (manualHargaCheckbox) manualHargaCheckbox.checked = false;
-     if (manualHargaBox) manualHargaBox.style.display = "none";
-     if (hideInfo) hideInfo.checked = false;
-     if (userName) userName.value = "";
-   
-     // Reset inputs
-     document.querySelectorAll('input[type="file"]').forEach(inp => inp.value = "");
-     if (sizeSelect) sizeSelect.value = "2x3";
-     if (customSize) customSize.style.display = "none";
-     if (marginInputMm) marginInputMm.value = "5";
-     if (gapInput) gapInput.value = "20";
-     if (hargaPerFotoInput) hargaPerFotoInput.value = "1000";
-   
-     // Sembunyikan navigasi halaman
-     if (pageNav) pageNav.style.display = "none";
-   
-     // Kembalikan tampilan tombol generate ke semula (hapus kelas kolase-done)
-     if (generateBtn) {
-       generateBtn.classList.remove('kolase-done');
-       generateBtn.classList.add('kolase-reset-transition');
-       // remove transition class after transition finished to keep DOM clean
-       setTimeout(() => generateBtn.classList.remove('kolase-reset-transition'), 600);
-     }
-   
-     // hide overlay jika tersisa
-     const overlay = document.getElementById('loadingOverlay_kolase');
-     if (overlay) overlay.classList.remove('active');
-   });
+     /* =========================
+   RESET TOTAL — always keep manualHarga active
+   ========================= */
+if (resetBtn) resetBtn.addEventListener("click", async (e) => {
+  e.preventDefault();
+
+  // Bersihkan semua state utama
+  batches = [];
+  placementsByPage = [];
+  pagesCache = [];
+  currentPageIndex = 0;
+  selectedPlacement = null;
+
+  // Hapus data tersimpan
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+
+  // Bersihkan kanvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Reset UI
+  if (batchList) batchList.innerHTML = "";
+  if (priceDisplay) priceDisplay.textContent = "Harga: Rp 0 (preview)";
+  if (modeSelect) modeSelect.value = "normal";
+  if (circleControls) circleControls.style.display = "none";
+  if (laprakControls) laprakControls.style.display = "none";
+  if (laprakMode) laprakMode.checked = false;
+
+  // ✅ harga manual tetap aktif & dikunci
+  if (manualHargaCheckbox) {
+    manualHargaCheckbox.checked = true;
+    manualHargaCheckbox.disabled = true;
+  }
+  if (manualHargaBox) manualHargaBox.style.display = "block";
+
+  if (hideInfo) hideInfo.checked = false;
+  if (userName) userName.value = "";
+
+  // Reset inputs dasar
+  document.querySelectorAll('input[type="file"]').forEach(inp => inp.value = "");
+  if (sizeSelect) sizeSelect.value = "2x3";
+  if (customSize) customSize.style.display = "none";
+  if (marginInputMm) marginInputMm.value = "5";
+  if (gapInput) gapInput.value = "20";
+  if (hargaPerFotoInput) hargaPerFotoInput.value = "1000";
+
+  // Sembunyikan navigasi halaman
+  if (pageNav) pageNav.style.display = "none";
+
+  // Kembalikan tampilan tombol generate ke semula
+  if (generateBtn) {
+    generateBtn.classList.remove('kolase-done');
+    generateBtn.classList.add('kolase-reset-transition');
+    setTimeout(() => generateBtn.classList.remove('kolase-reset-transition'), 600);
+  }
+
+  // hide overlay jika tersisa
+  const overlay = document.getElementById('loadingOverlay_kolase');
+  if (overlay) overlay.classList.remove('active');
+
+  // ✅ Refresh harga otomatis
+  await updatePricePreview();
+});
+
    
    /* ---------------------------
       generate (with overlay + color change)
