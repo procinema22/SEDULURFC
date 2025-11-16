@@ -159,26 +159,7 @@ canvas {
 .purple { background: var(--purple); }
 .red { background: var(--red); }
 
-/* LOG BOX */
-.log-box {
-  margin-top: 20px;
-  background: rgba(59,130,246,0.1);
-  padding: 15px;
-  border-radius: 10px;
-  border: 1px solid var(--blue);
-}
 
-.log-box h3 {
-  margin-bottom: 10px;
-  font-size: 15px;
-}
-
-#logContent {
-  max-height: 260px;
-  overflow-y: auto;
-  font-size: 13px;
-  line-height: 1.4;
-}
 
 /* ============ SCROLLBAR STYLING ============ */
 ::-webkit-scrollbar {
