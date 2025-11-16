@@ -3,125 +3,118 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>CETAK FOTO ANTI RIBET - v2</title>
+<title>Cetak Foto Otomatis</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 
-<!-- dependensi: exif-js dan jsPDF -->
 <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-<body>
-<div class="wrap">
-  <div class="header-row no-print">
-    <h1>CETAK FOTO ANTI RIBET — (v2.3)</h1>
-    <div class="header-controls">
-      <span class="muted-label">Mode Gelap</span>
-      <div id="darkSwitch" class="switch" title="Toggle Mode Gelap (UI saja)">
-        <div class="knob"></div>
-      </div>
-    </div>
-  </div>
 
-  <main>
-    <section class="card no-print">
-      <div class="controls">
+<body>
+
+<div class="layout">
+
+    <!-- ========= PANEL KIRI (FORM) ========= -->
+    <aside class="left-panel">
+
+        <h2 class="section-title">📝 Pengaturan Cetak</h2>
+
         <label>Pilih Mode Cetak</label>
         <select id="modeSelect">
-          <option value="normal">Mode LAPRAK OTOMATIS</option>
-          <option value="perfoto">Mode PAS FOTO</option>
-          <option value="circle">Mode LINGKARAN</option>
+            <option value="normal">Mode LAPRAK OTOMATIS</option>
+            <option value="perfoto">Mode PAS FOTO</option>
+            <option value="circle">Mode LINGKARAN</option>
         </select>
 
         <div id="circleControls" style="display:none;">
-          <label>Diameter Lingkaran (cm)</label>
-          <input id="circleDiameter" type="number" value="4" step="0.1" min="1">
-          <p style="font-size:12px;color:rgb(253, 253, 253);">Geser foto di preview untuk menyesuaikan posisi. Gunakan scroll untuk zoom.</p>
+            <label>Diameter Lingkaran (cm)</label>
+            <input id="circleDiameter" type="number" value="4">
         </div>
 
-        <div id="hargaPerFotoBox" style="display:none;">
-          <label>Harga per Foto (Rp)</label>
-          <input id="hargaPerFoto" type="number" value="1000" min="100" step="100">
-        </div>
-
-       
         <label>Pilih Ukuran Kotak (cm)</label>
         <select id="sizeSelect">
-          <option value="2x3">2 x 3</option>
-          <option value="3x4">3 x 4</option>
-          <option value="4x6">4 x 6</option>
-          <option value="5x5">5 x 5</option>
-          <option value="6x9">6 x 9</option>
-          <option value="10x15">10 x 15 (4R)</option>
-          <option value="custom">Custom...</option>
-
-         
-  
+            <option value="2x3">2 x 3</option>
+            <option value="3x4">3 x 4</option>
+            <option value="4x6">4 x 6</option>
+            <option value="5x5">5 x 5</option>
+            <option value="6x9">6 x 9</option>
+            <option value="10x15">10 x 15</option>
+            <option value="custom">Custom...</option>
         </select>
- <label>Upload Foto (pilih banyak)</label>
-          <input id="upload" type="file" accept="image/*" multiple>
-        <div id="customSize" style="display:none;gap:8px;align-items:center;">
-          <input id="customW" type="number" placeholder="Lebar (cm)" style="width:110px">
-          <input id="customH" type="number" placeholder="Tinggi (cm)" style="width:110px">
+
+        <div id="customSize" style="display:none;">
+            <input id="customW" type="number" placeholder="Lebar (cm)">
+            <input id="customH" type="number" placeholder="Tinggi (cm)">
         </div>
+
+        <label>Upload Foto (banyak)</label>
+        <div id="dropArea" class="drop-area">
+            Tarik & Letakkan Foto / Klik
+        </div>
+        <input id="upload" type="file" multiple accept="image/*" hidden>
 
         <label><input type="checkbox" id="manualHargaCheckbox"> Gunakan Harga Manual</label>
         <div id="manualHargaBox" style="display:none;">
-          <label>Harga Manual (Rp)</label>
-          <input id="manualHargaInput" type="number" value="1000" min="0" step="100">
+            <label>Harga Manual (Rp)</label>
+            <input id="manualHargaInput" type="number" value="1000">
         </div>
 
         <label><input type="checkbox" id="hideInfo"> Sembunyikan Nama & Harga di PDF</label>
 
         <label>Margin (mm)</label>
-        <input id="marginInputMm" type="number" value="5" min="0" step="0.1">
+        <input id="marginInputMm" type="number" value="5">
 
         <label>Gap antar foto (px)</label>
         <input id="gap" type="number" value="20">
 
-        <label>Nama Pelangan</label>
-        <input id="userName" type="text" value="" placeholder="Masukkan nama pengguna">
+        <label>Nama Pelanggan</label>
+        <input id="userName" type="text" placeholder="Nama pengguna">
 
-        <label><input type="checkbox" id="laprakMode"> Aktifkan Mode LAPRAK MANUAL</label>
-        <div id="laprakControls" style="display:none;margin-top:8px;">
-          <label>Nama Laprak</label>
-          <input type="text" id="laprakName" placeholder="Nama Pemilik">
-          <label>Harga Laprak (Rp)</label>
-          <input type="number" id="laprakPrice" value="2000" step="500" min="0">
+        <label><input type="checkbox" id="laprakMode"> Mode Laprak Manual</label>
+        <div id="laprakControls" style="display:none;">
+            <label>Nama Laprak</label>
+            <input type="text" id="laprakName">
+            <label>Harga Laprak (Rp)</label>
+            <input type="number" id="laprakPrice" value="2000">
         </div>
 
         <div class="price" id="priceDisplay">Harga: Rp 0</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-          <button id="previewBtn" class="ok">👁️ Preview Cepat</button>
-          <button id="generateBtn" class="ghost">📄 Buat Kolase</button>
-          <button id="downloadPdf" class="download-btn">💾 Buka PDF di Tab Baru</button>
-          <button id="reset" class="warn">🔁 Reset</button>
-         
 
-        </div>
         <div id="batchList"></div>
 
-        <div class="footer-note">
-          <div class="qr-saweria">
-            <p>UPDATE</p>
-            <p>V2.3 Update Button Harga </p>
-          </div>
+    </aside>
+
+    <!-- ========= PANEL TENGAH (CANVAS) ========= -->
+    <section class="center-panel">
+        <canvas id="canvas" width="1240" height="1754"></canvas>
+
+        <div class="page-nav" id="pageNav" style="display:none;">
+            <button id="prevPage">⬅</button>
+            <div id="pageIndicator">Halaman 1 / 1</div>
+            <button id="nextPage">➡</button>
         </div>
-      </div>
     </section>
 
-    <section class="card">
-      <div class="canvas-wrap">
-        <canvas id="canvas" width="1240" height="1754"></canvas>
-        <div class="page-nav no-print" id="pageNav" style="display:none">
-          <button id="prevPage">⬅️ Sebelumnya</button>
-          <div id="pageIndicator">Halaman 1 / 1</div>
-          <button id="nextPage">Berikutnya ➡️</button>
+    <!-- ========= PANEL KANAN (AKSI CEPAT) ========= -->
+    <aside class="right-panel">
+
+        <h2 class="section-title">⚡ Aksi Cepat</h2>
+
+        <button id="previewBtn" class="btn blue">👁 Preview Cepat</button>
+        <button id="generateBtn" class="btn green">📄 Buat Kolase</button>
+        <button id="downloadPdf" class="btn purple">💾 Buka PDF</button>
+        <button id="reset" class="btn red">🔁 Reset</button>
+
+        <div class="log-box">
+            <h3>🔔 Log Aktivitas</h3>
+            <h3>UPDATE</h3>
+            <div id="logContent"></div>
         </div>
-      </div>
-    </section>
-  </main>
+
+    </aside>
+
 </div>
 
 <script src="script.js"></script>
