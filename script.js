@@ -1013,6 +1013,97 @@ dropArea.addEventListener("drop", async (e) => {
     document.getElementById("alertCloseBtn").onclick = () => overlay.remove();
     overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
   }
+  /* ============================================================
+   SIMPLE IMAGE ALERT MODAL — CLEAN & COMPATIBLE
+   ============================================================ */
+function showImageAlert({
+  image = "",
+  title = "",
+  message = "",
+  button = "OK",
+  width = "380px",
+  titleColor = "#000",
+  textColor = "#333"
+}) {
+
+  const old = document.getElementById("zoomAlertModal");
+  if (old) old.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "zoomAlertModal";
+  Object.assign(overlay.style, {
+      position: "fixed",
+      inset: "0",
+      background: "rgba(0,0,0,0.55)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: "99999",
+      animation: "fadeIn 0.25s ease"
+  });
+
+  const box = document.createElement("div");
+  Object.assign(box.style, {
+      background: "#fff",
+      padding: "28px 32px",
+      borderRadius: "18px",
+      boxShadow: "0 8px 22px rgba(0,0,0,0.3)",
+      fontFamily: "Poppins, sans-serif",
+      maxWidth: width,
+      width: "90%",
+      textAlign: "center",
+      transform: "scale(0.5)",
+      animation: "zoomIn 0.25s ease forwards"
+  });
+
+  box.innerHTML = `
+      ${image ? `
+          <img src="${image}"
+          style="width:60%; border-radius:12px; margin-bottom:15px;">
+      ` : ""}
+
+      ${title ? `
+          <div style="
+              font-size:20px;
+              font-weight:600;
+              margin-bottom:10px;
+              color:${titleColor};
+          ">
+              ${title}
+          </div>
+      ` : ""}
+
+      <div style="
+          margin-bottom:26px;
+          font-size:16px;
+          line-height:1.45;
+          color:${textColor};
+      ">
+          ${message}
+      </div>
+
+      <button id="alertImageCloseBtn" style="
+          padding: 10px 28px;
+          border: none;
+          border-radius: 10px;
+          background: #007bff;
+          color: white;
+          font-size: 16px;
+          cursor: pointer;
+          transition: 0.2s;
+      ">
+          ${button}
+      </button>
+  `;
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  // tombol close
+  document.getElementById("alertImageCloseBtn").onclick = () => overlay.remove();
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+}
+
   
   /* ===== Animasi ===== */
   const videoModalCSS = document.createElement("style");
