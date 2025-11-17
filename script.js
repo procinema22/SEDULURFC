@@ -1,4 +1,4 @@
-/* script.js v2.5 - all-in: fixes + loading overlay + tombol berubah merah setelah kolase */
+/* script.js v2.6 - patch: laprak otomatis adjustable + rectangle offset/scale support */
 
 /* ---------------------------
    Element refs
@@ -58,31 +58,15 @@ dropArea.addEventListener("click", () => upload.click());
 });
 
 /// drop file + langsung preview
-dropArea.addEventListener("drop", async (e) => {
-  e.preventDefault();
-  const files = Array.from(e.dataTransfer.files);
 
-  // masukkan ke input
-  const dt = new DataTransfer();
-  files.forEach(f => dt.items.add(f));
-  upload.files = dt.files;
-
-  // proses upload seperti biasa
-  await upload.onchange({ target: upload });
-
-  // 🔥 langsung bangun layout kolase
+async function autoPreview() {
   await buildPlacementsForPages();
-
-  // 🔥 render semua halaman
   const result = await renderAllPagesToCanvases();
   pagesCache = result.pages || [];
-
-  // 🔥 tampilkan halaman pertama otomatis
   showPageAtIndex(0);
-
-  // 🔥 update harga otomatis
   await updatePricePreview();
-});
+}
+
 
 
    
@@ -170,6 +154,14 @@ dropArea.addEventListener("drop", async (e) => {
    /* ---------------------------
       UI interactions
       --------------------------- */
+
+      if (customW) customW.oninput = autoPreview;
+if (customH) customH.oninput = autoPreview;
+
+if (marginInputMm) marginInputMm.oninput = autoPreview;
+if (gapInput) gapInput.oninput = autoPreview;
+
+
       if (modeSelect) modeSelect.onchange = async () => {
         // 💾 simpan posisi sebelum mode diganti
         saveAllPlacementData();
@@ -186,10 +178,16 @@ dropArea.addEventListener("drop", async (e) => {
         }
       
         updatePricePreview();
+        await autoPreview();
+
       };
       
   
-   if (sizeSelect) sizeSelect.onchange = () => { if (customSize) customSize.style.display = sizeSelect.value === 'custom' ? 'flex' : 'none'; };
+      if (sizeSelect) sizeSelect.onchange = async () => {
+        if (customSize) customSize.style.display = sizeSelect.value === "custom" ? "flex" : "none";
+        await autoPreview();
+     };
+     
    if (laprakMode) laprakMode.onchange = () => { if (laprakControls) laprakControls.style.display = laprakMode.checked ? 'block' : 'none'; if (modeSelect) modeSelect.disabled = laprakMode.checked; updatePricePreview();};
    if (manualHargaCheckbox) {
   manualHargaCheckbox.checked = true;
@@ -230,20 +228,44 @@ dropArea.addEventListener("drop", async (e) => {
    /* ---------------------------
       upload
       --------------------------- */
+      async function addFilesToBatch(files) {
+        const mode = (modeSelect && modeSelect.value) || "normal";
+      
+        if (sizeSelect && sizeSelect.value === "custom") {
+          const cw = parseFloat(customW.value), ch = parseFloat(customH.value);
+          batches.push({
+            files,
+            size: "custom",
+            customW: cw,
+            customH: ch,
+            copy: 1,
+            mode
+          });
+        } else {
+          batches.push({
+            files,
+            size: sizeSelect ? sizeSelect.value : "2x3",
+            copy: 1,
+            mode
+          });
+        }
+      
+        refreshBatchList();
+        await autoPreview();
+      }
+      
    if (upload) upload.onchange = async e => {
-     const files = Array.from(e.target.files || []);
-     if (!files.length) return;
-     const mode = (modeSelect && modeSelect.value) || 'normal';
-     if (sizeSelect && sizeSelect.value === 'custom') {
-       const cw = parseFloat(customW.value), ch = parseFloat(customH.value);
-       if (!cw || !ch) batches.push({ files, size: '2x3', copy: 1, mode });
-       else batches.push({ files, size: 'custom', customW: cw, customH: ch, copy: 1, mode });
-     } else {
-       batches.push({ files, size: sizeSelect ? sizeSelect.value : '2x3', copy: 1, mode });
-     }
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    
+    await addFilesToBatch(files);
+    upload.value = "";
+    
      upload.value = '';
      refreshBatchList();
      await updatePricePreview();
+     await autoPreview();
+
    };
    
    function refreshBatchList() {
@@ -255,7 +277,11 @@ dropArea.addEventListener("drop", async (e) => {
        row.innerHTML = `<div style="flex:1"><strong>Batch ${i+1}</strong><div class="small">${(b.files||[]).length} foto — ${sizeText} — mode: ${b.mode||'normal'}</div></div>`;
        const copies = document.createElement('input');
        copies.type = 'number'; copies.value = b.copy || 1; copies.min = 1; copies.style.width = '60px';
-       copies.onchange = async () => { b.copy = Math.max(1, parseInt(copies.value) || 1); await updatePricePreview(); };
+       copies.onchange = async () => {
+        b.copy = Math.max(1, parseInt(copies.value) || 1);
+        await autoPreview();
+      };
+      
        const del = document.createElement('button'); del.textContent = '❌'; del.className = 'warn';
        del.onclick = async () => { batches.splice(i, 1); refreshBatchList(); await updatePricePreview(); };
        row.append(copies, del);
@@ -315,18 +341,19 @@ dropArea.addEventListener("drop", async (e) => {
    /* ---------------------------
       draw helpers
       --------------------------- */
-   function drawImageCover(ctx, img, x, y, boxW, boxH, rotateLandscapeToPortrait = true) {
+   function drawImageCover(ctx, img, x, y, boxW, boxH, offsetX = 0, offsetY = 0, scale = 1, rotateLandscapeToPortrait = true) {
      let iw = img.width, ih = img.height; let rotate = false;
      if (rotateLandscapeToPortrait && iw > ih) { rotate = true; [iw, ih] = [ih, iw]; }
      const imgRatio = iw / ih; const boxRatio = boxW / boxH;
      let drawW, drawH;
-     if (imgRatio > boxRatio) { drawH = boxH; drawW = boxH * imgRatio; } else { drawW = boxW; drawH = boxW / imgRatio; }
-     const offsetX = x + (boxW - drawW) / 2; const offsetY = y + (boxH - drawH) / 2;
+     if (imgRatio > boxRatio) { drawH = boxH * scale; drawW = drawH * imgRatio; } else { drawW = boxW * scale; drawH = drawW / imgRatio; }
+     const offsetPosX = x + (boxW - drawW) / 2 + (offsetX || 0);
+     const offsetPosY = y + (boxH - drawH) / 2 + (offsetY || 0);
      ctx.save(); ctx.beginPath(); ctx.rect(x + 1, y + 1, boxW - 2, boxH - 2); ctx.clip();
      if (rotate) {
-       const cx = x + boxW / 2, cy = y + boxH / 2; ctx.translate(cx, cy); ctx.rotate(-0.5 * Math.PI);
+       const cx = x + boxW / 2, cy = y + boxH / 2; ctx.translate(cx, cy); ctx.rotate(-Math.PI / 2);
        ctx.drawImage(img, -drawH / 2, -drawW / 2, drawH, drawW);
-     } else { ctx.drawImage(img, offsetX, offsetY, drawW, drawH); }
+     } else { ctx.drawImage(img, offsetPosX, offsetPosY, drawW, drawH); }
      ctx.restore();
    }
    
@@ -396,7 +423,8 @@ dropArea.addEventListener("drop", async (e) => {
                offsetX: saved ? saved.offsetX : 0,
                offsetY: saved ? saved.offsetY : 0,
                scale: saved ? saved.scale : 1,
-               isRectangle: true
+               isRectangle: true,
+               isAdjustable: (batch.mode === 'normal') // <-- ENABLE adjust for laprak otomatis (mode 'normal')
              });
              rowMaxH = Math.max(rowMaxH, boxH); x += boxW + gap;
            }
@@ -416,10 +444,16 @@ dropArea.addEventListener("drop", async (e) => {
      const pctx = pc.getContext('2d'); pctx.fillStyle = '#fff'; pctx.fillRect(0, 0, previewW, previewH);
      const placements = placementsByPage[pageIndex] || [];
      for (const p of placements) {
-       if (p.isRectangle) {
+      if (p.isRectangle && p.isAdjustable) {
+
          const r = Object.assign({}, p);
          r.x = Math.round(p.x * scale); r.y = Math.round(p.y * scale); r.boxW = Math.round(p.boxW * scale); r.boxH = Math.round(p.boxH * scale);
-         drawImageCover(pctx, p.imgObj, r.x, r.y, r.boxW, r.boxH, true);
+         // scale offsets for preview canvas
+         const offX = Math.round((p.offsetX || 0) * scale);
+         const offY = Math.round((p.offsetY || 0) * scale);
+         r.imgObj = p.imgObj;
+         // use same image-scale value (p.scale)
+         drawImageCover(pctx, r.imgObj, r.x, r.y, r.boxW, r.boxH, offX, offY, p.scale, true);
          pctx.strokeStyle = '#000'; pctx.lineWidth = 2; pctx.strokeRect(r.x, r.y, r.boxW, r.boxH);
        } else {
          const cp = Object.assign({}, p);
@@ -449,7 +483,7 @@ dropArea.addEventListener("drop", async (e) => {
          const imgHigh = await loadImageWithEXIF(pl.file, 'pdf'); if (!imgHigh) continue;
          const placementHigh = Object.assign({}, pl); placementHigh.imgObj = imgHigh;
          if (pl.isRectangle) {
-           drawImageCover(pctx, imgHigh, pl.x, pl.y, pl.boxW, pl.boxH, true);
+           drawImageCover(pctx, imgHigh, pl.x, pl.y, pl.boxW, pl.boxH, pl.offsetX, pl.offsetY, pl.scale, true);
            pctx.strokeStyle = '#000'; pctx.lineWidth = 2; pctx.strokeRect(pl.x, pl.y, pl.boxW, pl.boxH);
            usedY = Math.max(usedY, pl.y + pl.boxW ? pl.boxH : 0); // ensure usedY moves
          } else {
@@ -582,8 +616,10 @@ const result = await computeTotalPriceForPreviewOrGenerate();
      const scale = PREVIEW_SCALE; selectedPlacement = null;
      const placements = placementsByPage[currentPageIndex] || [];
      for (const p of placements) {
-       if (p.isRectangle) {
-         if (mx >= p.x * scale && mx <= (p.x + p.boxW) * scale && my >= p.y * scale && my <= (p.y + p.boxH) * scale) { selectedPlacement = p; break; }
+      if (p.isRectangle && p.isAdjustable) {
+
+         const inBox = mx >= p.x * scale && mx <= (p.x + p.boxW) * scale && my >= p.y * scale && my <= (p.y + p.boxH) * scale;
+         if (inBox) { selectedPlacement = p; break; }
        } else {
          const cx = p.x * scale + (p.diameterPx * scale) / 2; const cy = p.y * scale + (p.diameterPx * scale) / 2;
          const r = (p.diameterPx * scale) / 2; if (Math.hypot(mx - cx, my - cy) <= r) { selectedPlacement = p; break; }
@@ -706,13 +742,13 @@ if (resetBtn) resetBtn.addEventListener("click", async (e) => {
          pagesCache = r.pages || pagesCache;
        }
        showPageAtIndex(0);
-   
+
        // calculate totalHarga robustly
        let totalHarga = 0;
        if (typeof result === 'object' && result !== null) totalHarga = result.grandTotal || 0;
        else totalHarga = parseInt(result) || 0;
        priceDisplay.textContent = `Harga: Rp ${totalHarga.toLocaleString()}`;
-   
+
        // mark button as done (change color to merah gelap elegan)
        generateBtn.classList.add('kolase-done');
      } catch (err) {
@@ -727,68 +763,115 @@ if (resetBtn) resetBtn.addEventListener("click", async (e) => {
    };
    
    /* ---------------------------
-      download pdf
-      --------------------------- */
-   if (downloadPdf) downloadPdf.onclick = async () => {
-     if (!batches.length) return alert('Belum ada foto/batch.');
-     if (!userName.value.trim()) return alert('Nama harus diisi terlebih dahulu sebelum membuat PDF!');
-     if (!pagesCache.length) return alert('Silakan klik "📄 Buat Kolase" terlebih dahulu sebelum membuka PDF.');
-     downloadPdf.disabled = true; downloadPdf.textContent = '⏳ Menyiapkan PDF...';
-     try {
-       const pages = pagesCache;
-       // Attach footer (last page)
-       let totalHarga = 0;
-       try { totalHarga = parseInt(priceDisplay.textContent.replace(/[^\d]/g, '')) || 0; } catch (e) { totalHarga = 0; }
-       const lastCanvas = pages[pages.length - 1]; const lastCtx = lastCanvas.getContext('2d');
-       const fullW = lastCanvas.width, fullH = lastCanvas.height;
-       const pxPerCm = PX_PER_CM, footerHeightMm = 20, footerPx = (footerHeightMm / 10) * pxPerCm;
-       const footerX = 100;
-       const footerYName = fullH - footerPx + 30, footerYPrice = footerYName + 60;
-       if (!hideInfo || !hideInfo.checked) {
-         lastCtx.font = `48px Poppins`; lastCtx.fillStyle = '#333';
-         lastCtx.fillText(`Nama: ${userName.value || '-'}`, footerX, footerYName);
-         lastCtx.fillText(`Harga: Rp ${totalHarga.toLocaleString()}`, footerX, footerYPrice);
-       }
-       // build PDF
-       const { jsPDF } = window.jspdf;
-       const pdf = new jsPDF('p', 'pt', 'a4');
-       pages.forEach((pg, i) => {
-         if (i > 0) pdf.addPage();
-         pdf.addImage(pg.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 595, 842);
-       });
-       const blob = pdf.output('blob');
-       window.open(URL.createObjectURL(blob), '_blank');
-     } catch (err) {
-       console.error(err);
-       alert('Gagal membuat PDF.');
-     } finally { downloadPdf.disabled = false; downloadPdf.textContent = '💾 Buka PDF di Tab Baru'; }
-   };
-   
-   /* ---------------------------
-      save on unload
-      --------------------------- */
-   window.addEventListener('beforeunload', () => saveAllPlacementData());
-   
-   /* ---------------------------
-      initial blank
-      --------------------------- */
-   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-   
-   /* ---------------------------
-      safe resetPosLingkaran listener (if exists)
-      --------------------------- */
-   const btnResetLingkaran = document.getElementById('resetPosLingkaran');
-   if (btnResetLingkaran) {
-     btnResetLingkaran.addEventListener('click', () => {
-       if (typeof lingkaranImages === 'undefined' || !Array.isArray(lingkaranImages)) return;
-       lingkaranImages.forEach(img => {
-         img.x = canvas.width / 2;
-         img.y = canvas.height / 2;
-         img.scale = 1;
-       });
-       if (typeof drawCircleMode === 'function') drawCircleMode();
-     });
-   }
+     /* ---------------------------
+   download pdf
+--------------------------- */
+if (downloadPdf) downloadPdf.onclick = async () => {
+
+  if (!batches.length)
+      return alert('Belum ada foto/batch.');
+
+  // Jika Hide Info AKTIF → tidak perlu cek nama
+  if (!hideInfo.checked) {
+      // Hide Info OFF → nama wajib diisi
+      if (!userName.value.trim()) {
+          return showVideoAlert({
+              video: "img/PinDown.io_@BiggPinkPink_1763402176.mp4",
+              title: "Nama Belum Diisi",
+              message: "Silakan isi nama terlebih dahulu sebelum membuat PDF!",
+              button: "Saya Mengerti",
+              titleColor: "#e53935",
+              textColor: "#444"
+          });
+      }
+  }
+
+  if (!pagesCache.length)
+      return alert('Silakan klik "📄 Buat Kolase" terlebih dahulu sebelum membuka PDF.');
+
+  downloadPdf.disabled = true;
+  downloadPdf.textContent = '⏳ Menyiapkan PDF...';
+
+  try {
+      const pages = pagesCache;
+
+      // Attach footer (last page)
+      let totalHarga = 0;
+      try {
+          totalHarga = parseInt(priceDisplay.textContent.replace(/[^\d]/g, '')) || 0;
+      } catch (e) { totalHarga = 0; }
+
+      const lastCanvas = pages[pages.length - 1];
+      const lastCtx = lastCanvas.getContext('2d');
+      const fullW = lastCanvas.width;
+      const fullH = lastCanvas.height;
+
+      const pxPerCm = PX_PER_CM;
+      const footerHeightMm = 20;
+      const footerPx = (footerHeightMm / 10) * pxPerCm;
+
+      const footerX = 100;
+      const footerYName = fullH - footerPx + 30;
+      const footerYPrice = footerYName + 60;
+
+      // tampilkan footer hanya jika Hide Info TIDAK dicentang
+      if (!hideInfo.checked) {
+          lastCtx.font = `48px Poppins`;
+          lastCtx.fillStyle = '#333';
+          lastCtx.fillText(`Nama: ${userName.value || '-'}`, footerX, footerYName);
+          lastCtx.fillText(`Harga: Rp ${totalHarga.toLocaleString()}`, footerX, footerYPrice);
+      }
+
+      // build PDF
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'pt', 'a4');
+
+      pages.forEach((pg, i) => {
+          if (i > 0) pdf.addPage();
+          pdf.addImage(pg.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 595, 842);
+      });
+
+      const blob = pdf.output('blob');
+      window.open(URL.createObjectURL(blob), '_blank');
+
+  } catch (err) {
+      console.error(err);
+      alert('Gagal membuat PDF.');
+  } finally {
+      downloadPdf.disabled = false;
+      downloadPdf.textContent = '💾 Buka PDF di Tab Baru';
+  }
+
+}; // ← onclick Selesai dengan benar
+
+
+/* ---------------------------
+ save on unload
+--------------------------- */
+window.addEventListener('beforeunload', () => saveAllPlacementData());
+
+/* ---------------------------
+ initial blank
+--------------------------- */
+ctx.fillStyle = '#fff';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+/* ---------------------------
+ safe resetPosLingkaran listener
+--------------------------- */
+const btnResetLingkaran = document.getElementById('resetPosLingkaran');
+if (btnResetLingkaran) {
+  btnResetLingkaran.addEventListener('click', () => {
+      if (!Array.isArray(lingkaranImages)) return;
+      lingkaranImages.forEach(img => {
+          img.x = canvas.width / 2;
+          img.y = canvas.height / 2;
+          img.scale = 1;
+      });
+      if (typeof drawCircleMode === 'function') drawCircleMode();
+  });
+}
+
    /* ========== PASTE / CTRL+V UPLOAD ========== */
 document.addEventListener("paste", async (e) => {
   const items = e.clipboardData.items;
@@ -805,19 +888,26 @@ document.addEventListener("paste", async (e) => {
   if (!imageFile) return; // tidak ada gambar yg di-paste
 
   // Masukkan ke input file seperti upload biasa
+const dt = new DataTransfer();
+dt.items.add(imageFile);
+upload.files = dt.files;
+dropArea.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  const files = Array.from(e.dataTransfer.files);
+
+  if (!files.length) return;
+
+  // Masukkan semua file ke input, seperti upload biasa
   const dt = new DataTransfer();
-  dt.items.add(imageFile);
+  files.forEach(f => dt.items.add(f));
   upload.files = dt.files;
 
-  // jalankan upload existing
-  await upload.onchange({ target: upload });
+  // Tambahkan semua file ke batch secara benar
+  await addFilesToBatch(files);
 
-  // 🔥 langsung build layout
-  await buildPlacementsForPages();
-
-  // 🔥 render halaman
-  const result = await renderAllPagesToCanvases();
-  pagesCache = result.pages || [];
+  // AUTO PREVIEW (bangun layout + render + tampilkan)
+  await autoPreview();
+});
 
   // 🔥 tampilkan halaman pertama otomatis
   showPageAtIndex(0);
@@ -825,3 +915,110 @@ document.addEventListener("paste", async (e) => {
   // 🔥 update harga otomatis
   await updatePricePreview();
 });
+/* ============================================================
+   FINAL ALERT MODAL — VIDEO + TEKS + WARNA CUSTOM
+   ============================================================ */
+   function showVideoAlert({
+    video = "img/PinDown.io_@BiggPinkPink_1763402176.mp4",
+    title = "",
+    message = "",
+    button = "OK",
+    width = "380px",
+    titleColor = "#000",
+    textColor = "#333",
+    autoplay = true,
+    loop = true,
+    muted = true
+  }) {
+  
+    const old = document.getElementById("zoomAlertModal");
+    if (old) old.remove();
+  
+    const overlay = document.createElement("div");
+    overlay.id = "zoomAlertModal";
+    Object.assign(overlay.style, {
+      position: "fixed",
+      inset: "0",
+      background: "rgba(0,0,0,0.55)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: "99999",
+      animation: "fadeIn 0.3s ease"
+    });
+  
+    const box = document.createElement("div");
+    Object.assign(box.style, {
+      background: "#fff",
+      padding: "28px 32px",
+      borderRadius: "18px",
+      boxShadow: "0 8px 22px rgba(0,0,0,0.3)",
+      fontFamily: "Poppins, sans-serif",
+      maxWidth: width,
+      width: "90%",
+      textAlign: "center",
+      transform: "scale(0.5)",
+      animation: "zoomIn 0.25s ease forwards"
+    });
+  
+    box.innerHTML = `
+      ${ video ? `
+        <video 
+          src="${video}" 
+          style="width:50%; border-radius:12px; margin-bottom:15px;"
+          ${autoplay ? "autoplay" : ""}
+          ${loop ? "loop" : ""}
+          ${muted ? "muted" : ""}
+          playsinline
+        ></video>
+      ` : "" }
+  
+      ${ title ? `
+        <div style="
+          font-size:20px;
+          font-weight:600;
+          margin-bottom:10px;
+          color:${titleColor};
+        ">
+          ${title}
+        </div>
+      ` : "" }
+  
+      <div style="
+        margin-bottom:26px;
+        font-size:16px;
+        line-height:1.45;
+        color:${textColor};
+      ">
+        ${message}
+      </div>
+  
+      <button id="alertCloseBtn" style="
+        padding: 10px 28px;
+        border: none;
+        border-radius: 10px;
+        background: #007bff;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.2s;
+      ">
+        ${button}
+      </button>
+    `;
+  
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+  
+    document.getElementById("alertCloseBtn").onclick = () => overlay.remove();
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  }
+  
+  /* ===== Animasi ===== */
+  const videoModalCSS = document.createElement("style");
+  videoModalCSS.textContent = `
+  @keyframes zoomIn { 0%{transform:scale(0.5); opacity:0;} 100%{transform:scale(1); opacity:1;} }
+  @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+  `;
+  document.head.appendChild(videoModalCSS);
+  
