@@ -776,7 +776,7 @@ if (downloadPdf) downloadPdf.onclick = async () => {
       // Hide Info OFF → nama wajib diisi
       if (!userName.value.trim()) {
           return showVideoAlert({
-              video: "img/PinDown.io_@BiggPinkPink_1763402176.mp4",
+              video: "IMG/PinDown.io_@BiggPinkPink_1763402176.mp4",
               title: "Nama Belum Diisi",
               message: "Silakan isi nama terlebih dahulu sebelum membuat PDF!",
               button: "Saya Mengerti",
@@ -919,7 +919,7 @@ dropArea.addEventListener("drop", async (e) => {
    FINAL ALERT MODAL — VIDEO + TEKS + WARNA CUSTOM
    ============================================================ */
    function showVideoAlert({
-    video = "img/PinDown.io_@BiggPinkPink_1763402176.mp4",
+    video = "IMG/PinDown.io_@BiggPinkPink_1763402176.mp4",
     title = "",
     message = "",
     button = "OK",
