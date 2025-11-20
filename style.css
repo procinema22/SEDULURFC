@@ -48,7 +48,7 @@ h2, h3 {
 .left-panel label {
   font-size: 13px;
   color: var(--text-muted);
-  margin-bottom: 4px;
+  margin-bottom: 1px;
   display: block;
 }
 
@@ -194,4 +194,9 @@ canvas {
   .center-panel {
       padding: 10px;
   }
+}
+canvas.hover-canvas {
+  outline: 4px dashed #22c55e;
+  outline-offset: -4px;
+  transition: 0.15s;
 }

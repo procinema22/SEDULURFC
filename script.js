@@ -100,15 +100,7 @@ async function autoPreview() {
        z-index: 99999;
      }
      #loadingOverlay_kolase.active { display:flex; }
-     .spinner_kolase {
-       width: 68px;
-       height: 68px;
-       border-radius: 50%;
-       border: 6px solid rgba(83, 83, 83, 0.85);
-       border-top-color: rgb(243, 33, 208);
-       animation: spin_kolase 0.2s linear infinite;
-       box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-     }
+     
      @keyframes spin_kolase { to { transform: rotate(360deg); } }
    
      /* kolase-done class for generateBtn */
@@ -130,7 +122,20 @@ async function autoPreview() {
    
      const overlay = document.createElement('div');
      overlay.id = 'loadingOverlay_kolase';
-     overlay.innerHTML = `<div class="spinner_kolase" aria-hidden="true"></div>`;
+     overlay.innerHTML = `
+     <video 
+       src="video/Barongsai_Custom1 nailong 3.mov" 
+       autoplay 
+       loop 
+       muted 
+       playsinline
+       style="
+         width: 120px;
+         border-radius: 12px;
+       "
+     ></video>
+   `;
+   
      document.body.appendChild(overlay);
    })();
    
@@ -776,7 +781,7 @@ if (downloadPdf) downloadPdf.onclick = async () => {
       // Hide Info OFF → nama wajib diisi
       if (!userName.value.trim()) {
           return showVideoAlert({
-              video: "IMG/PinDown.io_@BiggPinkPink_1763402176.mp4",
+              video: "video/Barongsai_Custom1 nailong 3.mp4",
               title: "Nama Belum Diisi",
               message: "Silakan isi nama terlebih dahulu sebelum membuat PDF!",
               button: "Saya Mengerti",
@@ -873,48 +878,25 @@ if (btnResetLingkaran) {
 }
 
    /* ========== PASTE / CTRL+V UPLOAD ========== */
-document.addEventListener("paste", async (e) => {
-  const items = e.clipboardData.items;
-  let imageFile = null;
-
-  // Cari item gambar di clipboard
-  for (let item of items) {
-    if (item.type.indexOf("image") !== -1) {
-      imageFile = item.getAsFile();
-      break;
+   document.addEventListener("paste", async (e) => {
+    const items = e.clipboardData.items;
+    const collected = [];
+  
+    // Kumpulkan semua gambar dalam clipboard
+    for (let item of items) {
+      if (item.type.indexOf("image") !== -1) {
+        collected.push(item.getAsFile());
+      }
     }
-  }
-
-  if (!imageFile) return; // tidak ada gambar yg di-paste
-
-  // Masukkan ke input file seperti upload biasa
-const dt = new DataTransfer();
-dt.items.add(imageFile);
-upload.files = dt.files;
-dropArea.addEventListener("drop", async (e) => {
-  e.preventDefault();
-  const files = Array.from(e.dataTransfer.files);
-
-  if (!files.length) return;
-
-  // Masukkan semua file ke input, seperti upload biasa
-  const dt = new DataTransfer();
-  files.forEach(f => dt.items.add(f));
-  upload.files = dt.files;
-
-  // Tambahkan semua file ke batch secara benar
-  await addFilesToBatch(files);
-
-  // AUTO PREVIEW (bangun layout + render + tampilkan)
-  await autoPreview();
-});
-
-  // 🔥 tampilkan halaman pertama otomatis
-  showPageAtIndex(0);
-
-  // 🔥 update harga otomatis
-  await updatePricePreview();
-});
+  
+    if (!collected.length) return;
+  
+    await addFilesToBatch(collected);
+  
+    await autoPreview();
+    await updatePricePreview();
+  });
+  
 /* ============================================================
    FINAL ALERT MODAL — VIDEO + TEKS + WARNA CUSTOM
    ============================================================ */
@@ -952,7 +934,7 @@ dropArea.addEventListener("drop", async (e) => {
       background: "#fff",
       padding: "28px 32px",
       borderRadius: "18px",
-      boxShadow: "0 8px 22px rgba(0,0,0,0.3)",
+      boxShadow: "0 8px 22px rgba(255, 0, 0, 0.3)",
       fontFamily: "Poppins, sans-serif",
       maxWidth: width,
       width: "90%",
@@ -1113,3 +1095,31 @@ function showImageAlert({
   `;
   document.head.appendChild(videoModalCSS);
   
+  /* ===========================
+   DROP FILES LANGSUNG KE CANVAS
+   =========================== */
+const canvasArea = canvas;
+
+// Saat drag mendekati canvas → beri efek visual
+canvasArea.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  canvasArea.classList.add("hover-canvas");
+});
+
+// Saat drag keluar → hilangkan efek
+canvasArea.addEventListener("dragleave", () => {
+  canvasArea.classList.remove("hover-canvas");
+});
+
+// Saat file dijatuhkan langsung di canvas
+canvasArea.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  canvasArea.classList.remove("hover-canvas");
+
+  const files = Array.from(e.dataTransfer.files || []);
+  if (!files.length) return;
+
+  await addFilesToBatch(files);
+  await autoPreview();
+  await updatePricePreview();
+});
