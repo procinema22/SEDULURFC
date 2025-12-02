@@ -38,6 +38,22 @@
    const manualHargaInput = document.getElementById('manualHargaInput');
    const hideInfo = document.getElementById('hideInfo');
 
+/* === WATERMARK IMAGE LOADING (FIXED) === */
+const watermarkImg = new Image();
+watermarkImg.src = "SDLR.png";   // pastikan nama file sesuai
+let watermarkEnabled = true;     // default aktif
+
+// debug untuk memastikan file terbaca
+watermarkImg.onload = () => {
+    console.log("✔ Watermark Loaded:", watermarkImg.width + "x" + watermarkImg.height);
+    if (typeof autoPreview === "function") autoPreview();
+};
+
+watermarkImg.onerror = () => {
+    console.log("❌ ERROR: File watermark tidak ditemukan! Pastikan SDLR.png ada di folder yang sama dengan script.js");
+};
+
+
    /* ========== DRAG & DROP UPLOAD ========== */
 const dropArea = document.getElementById('dropArea');
 
@@ -202,6 +218,14 @@ if (gapInput) gapInput.oninput = autoPreview;
 
   updatePricePreview();
 }
+// === LIVE UPDATE HARGA MANUAL (FIX UTAMA) ===
+if (manualHargaInput) {
+  manualHargaInput.addEventListener("input", () => {
+    const val = parseInt(manualHargaInput.value) || 0;
+    priceDisplay.textContent = `Harga: Rp ${val.toLocaleString()} (manual)`;
+  });
+}
+
 
    
    /* ---------------------------
@@ -468,6 +492,22 @@ if (gapInput) gapInput.oninput = autoPreview;
          drawCirclePlacement(pctx, cp);
        }
      }
+    
+// === WATERMARK LOGO (PREVIEW) ===
+if (watermarkEnabled && watermarkImg.complete) {
+  const wmScale = 0.35;
+  const wmW = previewW * wmScale;
+  const wmH = wmW * (watermarkImg.height / watermarkImg.width);
+
+  const wmX = (previewW - wmW) / 2;
+  const wmY = (previewH - wmH) / 2;
+
+  pctx.globalAlpha = 0.25;
+  pctx.drawImage(watermarkImg, wmX, wmY, wmW, wmH);
+  pctx.globalAlpha = 1.0;
+}
+
+
      return pc;
    }
    
@@ -556,23 +596,36 @@ return { grandTotal, laprakPriceTotal, normalPagePrice, perfotoTotal, pagesCount
    /* ---------------------------
       updatePricePreview (safe)
       --------------------------- */
-   async function updatePricePreview() {
-     if (!batches.length) { priceDisplay.textContent = 'Harga: Rp 0 (preview)'; return; }
-     try {
-       
-    await buildPlacementsForPages();
-
-const result = await computeTotalPriceForPreviewOrGenerate();
-       const total = (typeof result === 'object' && result !== null)
-         ? (result.grandTotal || 0)
-         : (parseInt(result) || 0);
-       priceDisplay.textContent = `Harga: Rp ${total.toLocaleString()} (preview)`;
-     } catch (err) {
-       console.error(err);
-       priceDisplay.textContent = 'Harga: Rp 1000 (preview error)';
-     }
-   }
-   
+      async function updatePricePreview() {
+        if (!batches.length) {
+            priceDisplay.textContent = 'Harga: Rp 0 (preview)';
+            return;
+        }
+    
+        // === PRIORITAS HARGA MANUAL ===
+        if (manualHargaCheckbox && manualHargaCheckbox.checked) {
+            const val = parseInt(manualHargaInput.value) || 0;
+            priceDisplay.textContent = `Harga: Rp ${val.toLocaleString()} (manual)`;
+            return;
+        }
+    
+        // === jika bukan manual, baru hitung otomatis ===
+        try {
+            await buildPlacementsForPages();
+            const result = await computeTotalPriceForPreviewOrGenerate();
+    
+            const total = (typeof result === 'object' && result !== null)
+                ? (result.grandTotal || 0)
+                : (parseInt(result) || 0);
+    
+            priceDisplay.textContent = `Harga: Rp ${total.toLocaleString()} (preview)`;
+    
+        } catch (err) {
+            console.error(err);
+            priceDisplay.textContent = 'Harga: Rp 1000 (preview error)';
+        }
+    }
+    
    /* ---------------------------
       preview button
       --------------------------- */
@@ -694,6 +747,19 @@ if (resetBtn) resetBtn.addEventListener("click", async (e) => {
     manualHargaCheckbox.disabled = true;
   }
   if (manualHargaBox) manualHargaBox.style.display = "block";
+/* ============================
+   LIVE UPDATE HARGA MANUAL
+   ============================ */
+   if (manualHargaInput) {
+    manualHargaInput.addEventListener("input", () => {
+      if (manualHargaCheckbox.checked) {
+        const val = parseInt(manualHargaInput.value) || 0;
+        priceDisplay.textContent = `Harga: Rp ${val.toLocaleString()} (manual)`;
+      }
+    });
+  }
+  
+
 
   if (hideInfo) hideInfo.checked = false;
   if (userName) userName.value = "";
@@ -771,7 +837,26 @@ if (resetBtn) resetBtn.addEventListener("click", async (e) => {
      /* ---------------------------
    download pdf
 --------------------------- */
+// === WATERMARK LOGO (PDF) ===
+if (watermarkEnabled && watermarkImg.complete) {
+  const wmScale = 0.40; // ukuran watermark PDF
+  const wmW = 595 * wmScale;
+  const wmH = wmW * (watermarkImg.height / watermarkImg.width);
+
+  const wmX = (595 - wmW) / 2;
+  const wmY = (842 - wmH) / 2;
+
+  pdf.addImage(watermarkImg, "PNG", wmX, wmY, wmW, wmH, undefined, "FAST");
+}
+
+
 if (downloadPdf) downloadPdf.onclick = async () => {
+// Tunggu watermark selesai load sebelum dibuat PDF
+if (!watermarkImg.complete) {
+  await new Promise(resolve => watermarkImg.onload = resolve);
+}
+
+
 
   if (!batches.length)
       return alert('Belum ada foto/batch.');
@@ -832,9 +917,38 @@ if (downloadPdf) downloadPdf.onclick = async () => {
       const pdf = new jsPDF('p', 'pt', 'a4');
 
       pages.forEach((pg, i) => {
-          if (i > 0) pdf.addPage();
-          pdf.addImage(pg.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 595, 842);
-      });
+        if (i > 0) pdf.addPage();
+        pdf.addImage(pg.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 595, 842);
+    
+        // === WATERMARK LOGO DI PDF ===
+       {
+    
+          // === WATERMARK LOGO DI PDF ===
+if (watermarkEnabled && watermarkImg.complete) {
+
+  const wmScale = 0.40;
+  const wmW = 595 * wmScale;
+  const wmH = wmW * (watermarkImg.height / watermarkImg.width);
+
+  const wmX = (595 - wmW) / 2;
+  const wmY = (842 - wmH) / 2;
+
+  if (pdf.setGState) {
+      const gs = pdf.GState({ opacity: 0.25 });
+      pdf.setGState(gs);
+  }
+
+  pdf.addImage(watermarkImg, "PNG", wmX, wmY, wmW, wmH, undefined, "FAST");
+
+  if (pdf.setGState) {
+      const gsNormal = pdf.GState({ opacity: 1 });
+      pdf.setGState(gsNormal);
+  }
+}
+
+        }
+    });
+    
 
       const blob = pdf.output('blob');
       window.open(URL.createObjectURL(blob), '_blank');
@@ -1122,4 +1236,50 @@ canvasArea.addEventListener("drop", async (e) => {
   await addFilesToBatch(files);
   await autoPreview();
   await updatePricePreview();
+});
+const canvasOverlay = document.getElementById("canvasDropOverlay");
+
+// Saat file di-drag masuk
+canvas.addEventListener("dragover", (e) => {
+e.preventDefault();
+canvas.classList.add("drag-hover");
+if (canvasOverlay) canvasOverlay.classList.add("show");
+});
+
+// Saat drag keluar area canvas
+canvas.addEventListener("dragleave", () => {
+canvas.classList.remove("drag-hover");
+if (canvasOverlay) canvasOverlay.classList.remove("show");
+});
+
+// Saat drop
+canvas.addEventListener("drop", () => {
+canvas.classList.remove("drag-hover");
+if (canvasOverlay) canvasOverlay.classList.remove("show");
+});
+const canvasHint = document.getElementById("canvasDropHint");
+
+// drag masuk
+canvas.addEventListener("dragover", (e) => {
+e.preventDefault();
+if (canvasHint) canvasHint.classList.add("show");
+});
+
+// drag keluar
+canvas.addEventListener("dragleave", () => {
+if (canvasHint) canvasHint.classList.remove("show");
+});
+
+
+// saat drop
+canvas.addEventListener("drop", () => {
+if (canvasHint) canvasHint.classList.remove("show");
+});
+// === ADMIN SHORTCUT: hide/show watermark ===
+document.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "w") {
+      watermarkEnabled = !watermarkEnabled;
+      console.log("Watermark:", watermarkEnabled ? "ON" : "OFF");
+      if (typeof autoPreview === "function") autoPreview();
+  }
 });

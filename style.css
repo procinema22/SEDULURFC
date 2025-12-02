@@ -200,3 +200,49 @@ canvas.hover-canvas {
   outline-offset: -4px;
   transition: 0.15s;
 }
+#canvasDropOverlay {
+  position: absolute;
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 18px 26px;
+  background: rgba(0,0,0,0.65);
+  border-radius: 10px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0;
+  transition: 0.18s;
+  z-index: 9999;
+  }
+  
+  canvas.drag-hover {
+  outline: 4px dashed #3b82f6;
+  outline-offset: -6px;
+  filter: brightness(0.85);
+  transition: 0.15s;
+  }
+  
+  #canvasDropOverlay.show {
+  opacity: 1;
+  }
+  #canvasDropHint {
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: rgba(0,0,0,0.45);
+    color: white;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(5px);
+    pointer-events: none;
+    transition: 0.18s ease;
+    }
+    
+    #canvasDropHint.show {
+    opacity: 1;
+    transform: translateY(0);
+    }
+    
