@@ -383,6 +383,19 @@ if (manualHargaInput) {
        const cx = x + boxW / 2, cy = y + boxH / 2; ctx.translate(cx, cy); ctx.rotate(-Math.PI / 2);
        ctx.drawImage(img, -drawH / 2, -drawW / 2, drawH, drawW);
      } else { ctx.drawImage(img, offsetPosX, offsetPosY, drawW, drawH); }
+     // ===== WATERMARK DI DALAM AREA FOTO =====
+if (watermarkEnabled && watermarkImg.complete) {
+  ctx.globalAlpha = 0.28; // opacity watermark
+  const wmWidth = boxW * 0.35; // 35% dari ukuran foto
+  const wmHeight = wmWidth * (watermarkImg.height / watermarkImg.width);
+
+  const wmX = x + (boxW - wmWidth) / 2;
+  const wmY = y + (boxH - wmHeight) / 2;
+
+  ctx.drawImage(watermarkImg, wmX, wmY, wmWidth, wmHeight);
+  ctx.globalAlpha = 1;
+}
+
      ctx.restore();
    }
    
